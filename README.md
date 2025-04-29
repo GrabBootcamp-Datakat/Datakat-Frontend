@@ -1,122 +1,36 @@
-# Todo Application
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue.svg)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19-blue.svg)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-4.0-646CFF.svg)](https://vitejs.dev/)
-[![Ant Design](https://img.shields.io/badge/Ant%20Design-5.0-0170FE.svg)](https://ant.design/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-A modern, responsive Todo application built with React, TypeScript, and Ant Design. This project serves as a showcase of best practices in modern frontend development.
-
-## Features
-
-- **Task Management**
-  - Create, read, update, and delete todos
-  - Task title and description
-  - Task status tracking
-  - List and grid view options
-
-- **User Experience**
-  - Clean and intuitive interface
-  - Status management (Pending, In Progress, Completed)
-  - Responsive design for all devices
-  - Modern Ant Design components
-
-- **Technical Features**
-  - Type-safe development with TypeScript
-  - Fast development with Vite
-  - Efficient API integration with Axios
-  - State management with React hooks
-
-## Tech Stack
-
-- React 19
-- TypeScript 4.9
-- Vite 4.0
-- Ant Design 5.0
-- Axios
-- ESLint + Prettier
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js (v18 or higher recommended)
-- yarn or npm
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/tuannguyensn2001/skeleton-bootcamp-frontend
-cd skeleton-bootcamp-frontend
-```
-
-2. Install dependencies:
-```bash
-yarn install
-```
-
-3. Create a `.env` file in the root directory:
-```bash
-cp .env.example .env
-```
-
-4. Update the `.env` file with your API endpoint if needed:
-```
-VITE_API_BASE_URL=http://localhost:8080/api/v1
-```
-
-### Development
-
-To start the development server:
+First, run the development server:
 
 ```bash
+npm run dev
+# or
 yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-The application will be available at `http://localhost:5173`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Building for Production
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-To create a production build:
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```bash
-yarn build
-```
+## Learn More
 
-To preview the production build:
+To learn more about Next.js, take a look at the following resources:
 
-```bash
-yarn preview
-```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-### Linting
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-To run the linter:
+## Deploy on Vercel
 
-```bash
-yarn lint
-```
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## Project Structure
-
-```
-src/
-├── components/     # React components
-├── constants/      # Constants and enums
-├── hooks/          # Custom React hooks
-├── services/       # API services
-├── types/          # TypeScript types and interfaces
-└── App.tsx         # Root component
-```
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| VITE_API_BASE_URL | Backend API URL | http://localhost:8080/api/v1 |
-
-## License
-
-This project is licensed under the MIT License.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
