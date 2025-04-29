@@ -1,8 +1,8 @@
-"use client";
-import { Button, Card, Progress, Space } from "antd";
-import { CHART_COLORS } from "@/components/constants/color";
-import Title from "antd/es/typography/Title";
-import Text from "antd/es/typography/Text";
+'use client';
+import { Button, Card, Space, Spin } from 'antd';
+import { CHART_COLORS } from '@/components/constants/color';
+import Title from 'antd/es/typography/Title';
+import Text from 'antd/es/typography/Text';
 
 export interface ErrorStatusProps {
   error: string;
@@ -11,22 +11,11 @@ export interface ErrorStatusProps {
 
 export const LoadingStatus = () => {
   return (
-    <div
-      style={{
-        padding: 24,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        background: CHART_COLORS.background,
-      }}
-    >
-      <Card>
-        <Space direction="vertical" align="center">
-          <Title level={4}>Loading Log Data...</Title>
-          <Progress type="circle" percent={75} />
-        </Space>
-      </Card>
+    <div className="flex h-full items-center justify-center">
+      <Space direction="vertical" align="center">
+        <Spin size="large" />
+        <Title level={5}>Loading...</Title>
+      </Space>
     </div>
   );
 };
@@ -34,16 +23,7 @@ export const LoadingStatus = () => {
 export const ErrorStatus = (props: ErrorStatusProps) => {
   const { error, debugInfo } = props;
   return (
-    <div
-      style={{
-        padding: 24,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        background: CHART_COLORS.background,
-      }}
-    >
+    <div className="flex items-center justify-center">
       <Card>
         <Space direction="vertical" align="center">
           <Title level={4} style={{ color: CHART_COLORS.error }}>
@@ -51,7 +31,7 @@ export const ErrorStatus = (props: ErrorStatusProps) => {
           </Title>
           <Text type="danger">{error}</Text>
           {debugInfo && (
-            <Text type="secondary" style={{ whiteSpace: "pre-wrap" }}>
+            <Text type="secondary" style={{ whiteSpace: 'pre-wrap' }}>
               {debugInfo}
             </Text>
           )}
@@ -66,16 +46,7 @@ export const ErrorStatus = (props: ErrorStatusProps) => {
 
 export const NoDataStatus = () => {
   return (
-    <div
-      style={{
-        padding: 24,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        background: CHART_COLORS.background,
-      }}
-    >
+    <div className="flex items-center justify-center">
       <Card>
         <Space direction="vertical" align="center">
           <Title level={4}>No Log Data Available</Title>
