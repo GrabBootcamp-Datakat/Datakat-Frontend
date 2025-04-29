@@ -7,9 +7,12 @@ import dayjs from 'dayjs';
 
 export async function GET(request: Request) {
   try {
+    console.log('GET request received');
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+
+    console.log('startDate', startDate);
 
     const filePath = path.join(
       process.cwd(),

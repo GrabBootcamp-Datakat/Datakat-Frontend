@@ -376,75 +376,65 @@ export default function LogsPage() {
 
   return (
     <LayoutScroll>
-      <div className="flex min-h-screen flex-col">
-        <div className="flex-1 space-y-4 p-8 pt-0">
-          <div className="flex items-center justify-between">
-            <PageTitle title="Logs" />
-            <div className="flex items-center space-x-2">
-              <ClockCircleOutlined className="text-gray-400" />
-              <Text type="secondary" style={{ fontSize: '14px' }}>
-                Last updated: {new Date().toLocaleTimeString()}
-              </Text>
-            </div>
-          </div>
-
-          <Tabs defaultActiveKey="all">
-            <TabPane tab="All Logs" key="all">
-              <LogFilters
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                levelFilter={levelFilter}
-                setLevelFilter={setLevelFilter}
-                serviceFilter={serviceFilter}
-                setServiceFilter={setServiceFilter}
-                levels={levels}
-                services={services}
-              />
-
-              <Card className="mt-4">
-                <div className="mb-4 flex items-center justify-between">
-                  <Title level={4}>All Logs</Title>
-                  <Space>
-                    <Dropdown overlay={sortMenu} trigger={['click']}>
-                      <Button icon={<SortAscendingOutlined />}>
-                        Sort by {sortField} <DownOutlined />
-                      </Button>
-                    </Dropdown>
-                  </Space>
-                </div>
-                <LogsTable data={sortedLogs} />
-              </Card>
-            </TabPane>
-
-            <TabPane tab="Errors" key="errors">
-              <Card>
-                <Title level={4}>Error Logs</Title>
-                <LogsTable
-                  data={logData.filter((log) => log.level === 'ERROR')}
-                />
-              </Card>
-            </TabPane>
-
-            <TabPane tab="Warnings" key="warnings">
-              <Card>
-                <Title level={4}>Warning Logs</Title>
-                <LogsTable
-                  data={logData.filter((log) => log.level === 'WARN')}
-                />
-              </Card>
-            </TabPane>
-
-            <TabPane tab="Info" key="info">
-              <Card>
-                <Title level={4}>Info Logs</Title>
-                <LogsTable
-                  data={logData.filter((log) => log.level === 'INFO')}
-                />
-              </Card>
-            </TabPane>
-          </Tabs>
+      <div className="flex items-center justify-between">
+        <PageTitle title="Logs" />
+        <div className="flex items-center space-x-2">
+          <ClockCircleOutlined className="text-gray-400" />
+          <Text type="secondary" style={{ fontSize: '14px' }}>
+            Last updated: {new Date().toLocaleTimeString()}
+          </Text>
         </div>
       </div>
+
+      <Tabs defaultActiveKey="all">
+        <TabPane tab="All Logs" key="all">
+          <LogFilters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            levelFilter={levelFilter}
+            setLevelFilter={setLevelFilter}
+            serviceFilter={serviceFilter}
+            setServiceFilter={setServiceFilter}
+            levels={levels}
+            services={services}
+          />
+
+          <Card className="mt-4">
+            <div className="mb-4 flex items-center justify-between">
+              <Title level={4}>All Logs</Title>
+              <Space>
+                <Dropdown overlay={sortMenu} trigger={['click']}>
+                  <Button icon={<SortAscendingOutlined />}>
+                    Sort by {sortField} <DownOutlined />
+                  </Button>
+                </Dropdown>
+              </Space>
+            </div>
+            <LogsTable data={sortedLogs} />
+          </Card>
+        </TabPane>
+
+        <TabPane tab="Errors" key="errors">
+          <Card>
+            <Title level={4}>Error Logs</Title>
+            <LogsTable data={logData.filter((log) => log.level === 'ERROR')} />
+          </Card>
+        </TabPane>
+
+        <TabPane tab="Warnings" key="warnings">
+          <Card>
+            <Title level={4}>Warning Logs</Title>
+            <LogsTable data={logData.filter((log) => log.level === 'WARN')} />
+          </Card>
+        </TabPane>
+
+        <TabPane tab="Info" key="info">
+          <Card>
+            <Title level={4}>Info Logs</Title>
+            <LogsTable data={logData.filter((log) => log.level === 'INFO')} />
+          </Card>
+        </TabPane>
+      </Tabs>
     </LayoutScroll>
   );
 }
