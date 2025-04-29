@@ -22,11 +22,7 @@ export const TimeCustomization = memo(
     }, [dispatch]);
 
     if (isLoading) {
-      return (
-        <Card title="Time Customization" hoverable>
-          <ChartSkeleton />
-        </Card>
-      );
+      return <ChartSkeleton title="Time Customization" />;
     }
 
     return (

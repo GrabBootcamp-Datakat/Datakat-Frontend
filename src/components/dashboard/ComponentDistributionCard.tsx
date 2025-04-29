@@ -34,11 +34,7 @@ export default function ComponentDistributionCard() {
   };
 
   if (isLoading || componentDataLoading) {
-    return (
-      <Card title="Component Distribution" hoverable>
-        <ChartSkeleton />
-      </Card>
-    );
+    return <ChartSkeleton title="Component Distribution" />;
   }
 
   if (!componentAnalysisData || !componentData) {

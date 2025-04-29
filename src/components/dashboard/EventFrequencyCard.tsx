@@ -18,11 +18,7 @@ export default function EventFrequencyCard() {
   const { data: eventFrequency, isLoading } = useGetEventFrequencyQuery();
 
   if (isLoading) {
-    return (
-      <Card title="Event Frequency" hoverable>
-        <ChartSkeleton />
-      </Card>
-    );
+    return <ChartSkeleton title="Event Frequency" />;
   }
 
   if (!eventFrequency) {

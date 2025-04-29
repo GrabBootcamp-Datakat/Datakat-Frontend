@@ -29,11 +29,7 @@ export default function TimeSeriesCard() {
   };
 
   if (isLoading) {
-    return (
-      <Card title="Time Series Analysis" hoverable>
-        <ChartSkeleton />
-      </Card>
-    );
+    return <ChartSkeleton title="Time Series Analysis" />;
   }
 
   return (
@@ -66,39 +62,35 @@ export default function TimeSeriesCard() {
         </Button>
       }
     >
-      {isLoading ? (
-        <ChartSkeleton />
-      ) : (
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={timeAnalysisData}>
-            <defs>
-              <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={CHART_COLORS.total}
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={CHART_COLORS.total}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Area
-              type="monotone"
-              dataKey="count"
-              stroke={CHART_COLORS.total}
-              fillOpacity={1}
-              fill="url(#colorCount)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      )}
+      <ResponsiveContainer width="100%" height={300}>
+        <AreaChart data={timeAnalysisData}>
+          <defs>
+            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor={CHART_COLORS.total}
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor={CHART_COLORS.total}
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Area
+            type="monotone"
+            dataKey="count"
+            stroke={CHART_COLORS.total}
+            fillOpacity={1}
+            fill="url(#colorCount)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </Card>
   );
 }

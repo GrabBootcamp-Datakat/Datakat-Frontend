@@ -91,11 +91,7 @@ export const LogDetails = memo(() => {
   const { data: logs, isLoading } = useGetLogsQuery();
 
   if (isLoading || !logs) {
-    return (
-      <Card title="Log Details" hoverable>
-        <ChartSkeleton />
-      </Card>
-    );
+    return <ChartSkeleton title="Log Details" />;
   }
 
   return (

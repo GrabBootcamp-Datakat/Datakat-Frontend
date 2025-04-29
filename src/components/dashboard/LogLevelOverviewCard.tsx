@@ -168,11 +168,7 @@ export default function LogLevelOverviewCard() {
   const { data: logCount, isLoading } = useGetLogsCountQuery();
 
   if (isLoading || !logCount) {
-    return (
-      <Card title="Log Level Overview" hoverable>
-        <ChartSkeleton />
-      </Card>
-    );
+    return <ChartSkeleton title="Log Level Overview" />;
   }
 
   return (

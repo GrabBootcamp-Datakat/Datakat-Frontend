@@ -99,11 +99,7 @@ const AnomalyDetectionCard = memo(() => {
   }, [logs]);
 
   if (isLoading || !logs) {
-    return (
-      <Card title="Anomaly Detection" hoverable>
-        <ChartSkeleton />
-      </Card>
-    );
+    return <ChartSkeleton title="Anomaly Detection" />;
   }
 
   return (
