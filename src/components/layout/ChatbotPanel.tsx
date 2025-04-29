@@ -19,14 +19,6 @@ import {
   MinusOutlined,
 } from "@ant-design/icons";
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  setTimeAnalysisCustomization,
-  setComponentAnalysisCustomization,
-} from "@/store/slices/chartCustomizationSlice";
-import { extractChartQuery } from "@/services/geminiService";
-import { TimeUnit } from "@/types/logsType";
-import { RootState } from "@/store/store";
 
 const { Sider } = Layout;
 const { TextArea } = Input;
@@ -41,16 +33,10 @@ interface Message {
 
 export default function ChatbotPanel() {
   const { open, toggle } = useToggle(false);
-  const dispatch = useDispatch();
-  const { timeAnalysis, componentAnalysis } = useSelector(
-    (state: RootState) => state.chartCustomization
-  );
-
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      content:
-        "Hello! I'm your log analysis assistant. How can I help you today?",
+      content: "Hello! I'm your assistant. How can I help you today?",
       sender: "bot",
       timestamp: new Date().toLocaleTimeString(),
     },
@@ -78,46 +64,14 @@ export default function ChatbotPanel() {
     setMessages([...messages, newMessage]);
     setInputValue("");
 
-    try {
-      // Extract chart query parameters using Gemini
-      const queryParams = await extractChartQuery(inputValue);
-
-      // Update chart customization state based on the query
-      if (timeAnalysis.isCustomizing) {
-        dispatch(
-          setTimeAnalysisCustomization({
-            query: inputValue,
-            timeUnit: (queryParams.timeUnit as TimeUnit) || TimeUnit.HOUR,
-          })
-        );
-      } else if (componentAnalysis.isCustomizing) {
-        dispatch(
-          setComponentAnalysisCustomization({
-            query: inputValue,
-          })
-        );
-      }
-
-      // Simulate bot response
-      const botResponse: Message = {
-        id: messages.length + 2,
-        content:
-          "I've updated the chart based on your request. Is there anything else you'd like to customize?",
-        sender: "bot",
-        timestamp: new Date().toLocaleTimeString(),
-      };
-      setMessages((prev) => [...prev, botResponse]);
-    } catch (error) {
-      console.error("Error processing chart customization:", error);
-      const errorResponse: Message = {
-        id: messages.length + 2,
-        content:
-          "I'm sorry, I couldn't process your request. Please try again with a different query.",
-        sender: "bot",
-        timestamp: new Date().toLocaleTimeString(),
-      };
-      setMessages((prev) => [...prev, errorResponse]);
-    }
+    // Simulate bot response
+    const botResponse: Message = {
+      id: messages.length + 2,
+      content: "I'm a simple chatbot. How can I assist you further?",
+      sender: "bot",
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    setMessages((prev) => [...prev, botResponse]);
   };
 
   return (
@@ -163,14 +117,10 @@ export default function ChatbotPanel() {
             />
             <div>
               <Title level={5} style={{ margin: 0 }}>
-                Log Assistant
+                Chat Assistant
               </Title>
               <Text type="secondary" style={{ fontSize: "12px" }}>
-                {timeAnalysis.isCustomizing
-                  ? "Customizing Time Analysis"
-                  : componentAnalysis.isCustomizing
-                  ? "Customizing Component Analysis"
-                  : "Online"}
+                Online
               </Text>
             </div>
           </Space>
@@ -295,13 +245,7 @@ export default function ChatbotPanel() {
             <TextArea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder={
-                timeAnalysis.isCustomizing
-                  ? "Customize time analysis (e.g., 'Show data by month for the last 3 months')"
-                  : componentAnalysis.isCustomizing
-                  ? "Customize component analysis (e.g., 'Show top 10 components with error logs')"
-                  : "Type your message..."
-              }
+              placeholder="Type your message..."
               autoSize={{ minRows: 1, maxRows: 4 }}
               style={{
                 borderRadius: "20px 0 0 20px",
