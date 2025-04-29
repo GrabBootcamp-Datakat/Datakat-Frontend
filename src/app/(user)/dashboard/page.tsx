@@ -22,19 +22,19 @@ export default function DashboardPage() {
       </Row>
 
       <Row gutter={[16, 16]}>
-        <Col span={16}>
+        <Col span={14}>
           <TimeSeriesCard />
         </Col>
-        <Col span={8}>
+        <Col span={10}>
           <ComponentDistributionCard />
         </Col>
       </Row>
 
       <Row gutter={[16, 16]}>
-        <Col span={16}>
+        <Col span={14}>
           <TimeDistributionCard />
         </Col>
-        <Col span={8}>
+        <Col span={10}>
           <EventFrequencyCard />
         </Col>
       </Row>
