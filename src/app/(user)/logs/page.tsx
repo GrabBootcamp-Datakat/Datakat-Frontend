@@ -1,12 +1,10 @@
-import Dashboard from '@/components/dashboard/Dashboard';
 import LayoutScroll from '@/components/common/LayoutScroll';
 import PageTitle from '@/components/common/PageTitle';
 
-export default function DashboardPage() {
+export default function LogsPage() {
   return (
     <LayoutScroll>
-      <PageTitle title="Log Analytics Dashboard" />
-      <Dashboard />
+      <PageTitle title="Logs" />
     </LayoutScroll>
   );
 }

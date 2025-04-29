@@ -3,7 +3,7 @@
 import { Input, Button, Typography, Avatar, Space, Card } from 'antd';
 import { SendOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { useState, useRef, useEffect } from 'react';
-import { PageTitle } from '@/components/common/PageTitle';
+import PageTitle from '@/components/common/PageTitle';
 
 const { TextArea } = Input;
 const { Text } = Typography;

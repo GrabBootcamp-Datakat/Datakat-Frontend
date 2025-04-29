@@ -1,6 +1,6 @@
 'use client';
 
-import { Col, Row, Space } from 'antd';
+import { Col, Row } from 'antd';
 import { useMemo, useEffect, useState } from 'react';
 import { parseLogsFromCsv, getLogStats } from '@/utils/parser';
 import {
@@ -13,7 +13,6 @@ import { TimeAnalysis } from './TimeAnalysis';
 import { ErrorStatus, LoadingStatus, NoDataStatus } from '../common/Status';
 import { ComponentAnalysis } from './ComponentAnalysis';
 import { Log, LogLevel, TimeUnit } from '@/types/logsType';
-import { PageTitle } from '../common/PageTitle';
 
 export default function Dashboard() {
   const [logs, setLogs] = useState<Log[]>([]);
@@ -226,9 +225,7 @@ export default function Dashboard() {
   }
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <PageTitle title="Log Analytics Dashboard" />
-
+    <>
       <div className="flex gap-4">
         <LogLevelOverview />
         <AnomalyDetection />
@@ -257,6 +254,6 @@ export default function Dashboard() {
 
       {/* Log Details */}
       {/* <LogDetails errorLogs={errorLogs} commonMessages={commonMessages} /> */}
-    </Space>
+    </>
   );
 }
