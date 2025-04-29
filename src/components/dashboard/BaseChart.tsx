@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Card, Space, Button, Modal } from "antd";
-import { SettingOutlined } from "@ant-design/icons";
-import { ChartCustomization } from "./ChartCustomization";
+import React, { useState } from 'react';
+import { Card, Space, Button, Modal } from 'antd';
+import { SettingOutlined } from '@ant-design/icons';
+import { ChartCustomization } from './ChartCustomization';
 
 interface BaseChartProps {
   title: string;
@@ -14,7 +14,7 @@ export const BaseChart: React.FC<BaseChartProps> = ({
   title,
   children,
   onCustomize,
-  initialTimeValue = "1H",
+  initialTimeValue = '1H',
 }) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
