@@ -1,12 +1,12 @@
 'use client';
+
 import { BarChartOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Space, Skeleton } from 'antd';
+import { Card, Col, Row, Space, Progress, Typography } from 'antd';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { Progress } from 'antd';
 import {
   Pie,
   PieChart,
@@ -16,50 +16,170 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { CHART_COLORS } from '../constants/color';
-import Title from 'antd/es/typography/Title';
-import Text from 'antd/es/typography/Text';
 import { useGetLogsCountQuery } from '@/store/api/logsApi';
+import { ChartSkeleton } from '../common/Skeleton';
 
-export const LogLevelOverview = () => {
-  const { data: logCount, isLoading } = useGetLogsCountQuery();
+const { Text, Title } = Typography;
 
-  const renderSkeleton = () => (
+interface LogCount {
+  total: number;
+  INFO: number;
+  WARN: number;
+  ERROR: number;
+}
+
+interface LogLevelCardProps {
+  icon: React.ReactNode;
+  level: 'INFO' | 'WARN' | 'ERROR';
+  count: number;
+  total: number;
+  color: string;
+}
+
+const LogLevelCard = ({
+  icon,
+  level,
+  count,
+  total,
+  color,
+}: LogLevelCardProps) => {
+  const percentage = Number(((count / total) * 100).toFixed(1));
+
+  return (
     <Card
-      title={
-        <Space>
-          <BarChartOutlined />
-          <span>Log Level Overview</span>
-        </Space>
-      }
-      hoverable
-      bodyStyle={{ padding: '12px' }}
-      style={{ flex: 2 }}
+      styles={{
+        body: {
+          padding: '12px',
+        },
+      }}
     >
-      <Row gutter={[12, 12]}>
-        <Col span={12}>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
-          >
-            {[1, 2, 3].map((i) => (
-              <Card key={i} bordered={false} bodyStyle={{ padding: '12px' }}>
-                <Skeleton active paragraph={{ rows: 2 }} />
-              </Card>
-            ))}
+      <div className="flex items-center gap-3">
+        {icon}
+        <div className="flex-1">
+          <div className="mb-2 flex items-center justify-between">
+            <Text strong className="text-sm">
+              {level}
+            </Text>
+            <Text className="text-sm">{count}</Text>
           </div>
-        </Col>
-        <Col span={12}>
-          <Card
-            bordered={false}
-            bodyStyle={{ padding: '12px', height: '100%' }}
-          >
-            <Skeleton active paragraph={{ rows: 4 }} />
-          </Card>
-        </Col>
-      </Row>
+          <Progress
+            percent={percentage}
+            strokeColor={color}
+            trailColor={CHART_COLORS.background}
+            showInfo={false}
+            size="small"
+          />
+          <Text type="secondary" className="mt-1 block text-xs">
+            {percentage}%
+          </Text>
+        </div>
+      </div>
     </Card>
   );
+};
 
-  if (isLoading || !logCount) return renderSkeleton();
+const LogLevelDistribution = ({ logCount }: { logCount: LogCount }) => {
+  const pieData = [
+    {
+      name: 'INFO',
+      value: logCount.INFO,
+      color: CHART_COLORS.info,
+    },
+    {
+      name: 'WARN',
+      value: logCount.WARN,
+      color: CHART_COLORS.warn,
+    },
+    {
+      name: 'ERROR',
+      value: logCount.ERROR,
+      color: CHART_COLORS.error,
+    },
+  ];
+
+  return (
+    <Card
+      style={{ height: '100%' }}
+      styles={{
+        body: {
+          padding: '12px',
+        },
+      }}
+    >
+      <Title level={5} className="mb-3 text-sm">
+        Log Level Distribution
+      </Title>
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie
+            data={pieData}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={80}
+            paddingAngle={5}
+            dataKey="value"
+          >
+            {pieData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+    </Card>
+  );
+};
+
+const LogLevelCards = ({ logCount }: { logCount: LogCount }) => (
+  <div className="flex flex-col gap-3">
+    <LogLevelCard
+      icon={
+        <CheckCircleOutlined
+          style={{ color: CHART_COLORS.info, fontSize: '24px' }}
+        />
+      }
+      level="INFO"
+      count={logCount.INFO}
+      total={logCount.total}
+      color={CHART_COLORS.info}
+    />
+    <LogLevelCard
+      icon={
+        <WarningOutlined
+          style={{ color: CHART_COLORS.warn, fontSize: '24px' }}
+        />
+      }
+      level="WARN"
+      count={logCount.WARN}
+      total={logCount.total}
+      color={CHART_COLORS.warn}
+    />
+    <LogLevelCard
+      icon={
+        <CloseCircleOutlined
+          style={{ color: CHART_COLORS.error, fontSize: '24px' }}
+        />
+      }
+      level="ERROR"
+      count={logCount.ERROR}
+      total={logCount.total}
+      color={CHART_COLORS.error}
+    />
+  </div>
+);
+
+export default function LogLevelOverview() {
+  const { data: logCount, isLoading } = useGetLogsCountQuery();
+
+  if (isLoading || !logCount) {
+    return (
+      <Card title="Log Level Overview" hoverable>
+        <ChartSkeleton />
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -70,223 +190,21 @@ export const LogLevelOverview = () => {
         </Space>
       }
       hoverable
-      bodyStyle={{ padding: '12px' }}
       style={{ flex: 2 }}
+      styles={{
+        body: {
+          padding: '12px',
+        },
+      }}
     >
       <Row gutter={[12, 12]}>
         <Col span={12}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <Card bordered={false} bodyStyle={{ padding: '12px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                }}
-              >
-                <CheckCircleOutlined
-                  style={{ color: CHART_COLORS.info, fontSize: '24px' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <Text strong style={{ fontSize: '14px' }}>
-                      INFO
-                    </Text>
-                    <Text style={{ fontSize: '14px' }}>{logCount.INFO}</Text>
-                  </div>
-                  <Progress
-                    percent={Number(
-                      ((logCount.INFO / logCount.total) * 100).toFixed(1),
-                    )}
-                    strokeColor={CHART_COLORS.info}
-                    trailColor={CHART_COLORS.background}
-                    showInfo={false}
-                    size="small"
-                  />
-                  <Text
-                    type="secondary"
-                    style={{
-                      fontSize: '12px',
-                      marginTop: '4px',
-                      display: 'block',
-                    }}
-                  >
-                    {((logCount.INFO / logCount.total) * 100).toFixed(1)}%
-                  </Text>
-                </div>
-              </div>
-            </Card>
-            <Card bordered={false} bodyStyle={{ padding: '12px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                }}
-              >
-                <WarningOutlined
-                  style={{ color: CHART_COLORS.warn, fontSize: '24px' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <Text strong style={{ fontSize: '14px' }}>
-                      WARN
-                    </Text>
-                    <Text style={{ fontSize: '14px' }}>{logCount.WARN}</Text>
-                  </div>
-                  <Progress
-                    percent={Number(
-                      ((logCount.WARN / logCount.total) * 100).toFixed(1),
-                    )}
-                    strokeColor={CHART_COLORS.warn}
-                    trailColor={CHART_COLORS.background}
-                    showInfo={false}
-                    size="small"
-                  />
-                  <Text
-                    type="secondary"
-                    style={{
-                      fontSize: '12px',
-                      marginTop: '4px',
-                      display: 'block',
-                    }}
-                  >
-                    {((logCount.WARN / logCount.total) * 100).toFixed(1)}%
-                  </Text>
-                </div>
-              </div>
-            </Card>
-            <Card bordered={false} bodyStyle={{ padding: '12px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                }}
-              >
-                <CloseCircleOutlined
-                  style={{ color: CHART_COLORS.error, fontSize: '24px' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <Text strong style={{ fontSize: '14px' }}>
-                      ERROR
-                    </Text>
-                    <Text style={{ fontSize: '14px' }}>{logCount.ERROR}</Text>
-                  </div>
-                  <Progress
-                    percent={Number(
-                      ((logCount.ERROR / logCount.total) * 100).toFixed(1),
-                    )}
-                    strokeColor={CHART_COLORS.error}
-                    trailColor={CHART_COLORS.background}
-                    showInfo={false}
-                    size="small"
-                  />
-                  <Text
-                    type="secondary"
-                    style={{
-                      fontSize: '12px',
-                      marginTop: '4px',
-                      display: 'block',
-                    }}
-                  >
-                    {((logCount.ERROR / logCount.total) * 100).toFixed(1)}%
-                  </Text>
-                </div>
-              </div>
-            </Card>
-          </div>
+          <LogLevelCards logCount={logCount} />
         </Col>
         <Col span={12}>
-          <Card
-            bordered={false}
-            bodyStyle={{ padding: '12px', height: '100%' }}
-          >
-            <Title level={5} style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-              Log Level Distribution
-            </Title>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={[
-                    {
-                      name: 'INFO',
-                      value: logCount.INFO,
-                      color: CHART_COLORS.info,
-                    },
-                    {
-                      name: 'WARN',
-                      value: logCount.WARN,
-                      color: CHART_COLORS.warn,
-                    },
-                    {
-                      name: 'ERROR',
-                      value: logCount.ERROR,
-                      color: CHART_COLORS.error,
-                    },
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {[
-                    {
-                      name: 'INFO',
-                      value: logCount.INFO,
-                      color: CHART_COLORS.info,
-                    },
-                    {
-                      name: 'WARN',
-                      value: logCount.WARN,
-                      color: CHART_COLORS.warn,
-                    },
-                    {
-                      name: 'ERROR',
-                      value: logCount.ERROR,
-                      color: CHART_COLORS.error,
-                    },
-                  ].map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
+          <LogLevelDistribution logCount={logCount} />
         </Col>
       </Row>
     </Card>
   );
-};
+}
