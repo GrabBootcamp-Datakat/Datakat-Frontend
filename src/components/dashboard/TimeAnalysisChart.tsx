@@ -1,45 +1,40 @@
-import React from "react";
-import { BaseChart } from "./BaseChart";
-import { Line } from "@ant-design/plots";
-
-interface TimeDataPoint {
-  time: string;
-  value: number;
-  type: string;
-}
+'use client';
+import { memo } from 'react';
+import { Area } from 'recharts';
+import { BaseChart } from './BaseChart';
+import { CHART_COLORS } from '../constants/color';
+import type { TimeDataPoint } from '@/types/log';
 
 interface TimeAnalysisChartProps {
   data: TimeDataPoint[];
-  onCustomize: (timePattern: string) => void;
-  initialTimeValue?: string;
+  height?: number;
 }
 
-export const TimeAnalysisChart: React.FC<TimeAnalysisChartProps> = ({
-  data,
-  onCustomize,
-  initialTimeValue,
-}) => {
-  const config = {
-    data,
-    xField: "time",
-    yField: "value",
-    seriesField: "type",
-    smooth: true,
-    animation: {
-      appear: {
-        animation: "path-in",
-        duration: 1000,
-      },
-    },
-  };
+export const TimeAnalysisChart = memo(
+  ({ data, height }: TimeAnalysisChartProps) => {
+    return (
+      <BaseChart height={height}>
+        <defs>
+          <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="5%"
+              stopColor={CHART_COLORS.total}
+              stopOpacity={0.8}
+            />
+            <stop offset="95%" stopColor={CHART_COLORS.total} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <Area
+          type="monotone"
+          data={data}
+          dataKey="count"
+          stroke={CHART_COLORS.total}
+          fillOpacity={1}
+          fill="url(#colorCount)"
+        />
+      </BaseChart>
+    );
+  },
+);
 
-  return (
-    <BaseChart
-      title="Time Analysis"
-      onCustomize={onCustomize}
-      initialTimeValue={initialTimeValue}
-    >
-      <Line {...config} />
-    </BaseChart>
-  );
-};
+TimeAnalysisChart.displayName = 'TimeAnalysisChart';

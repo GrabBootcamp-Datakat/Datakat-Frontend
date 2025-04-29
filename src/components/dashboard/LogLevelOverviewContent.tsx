@@ -18,6 +18,7 @@ import {
 import { CHART_COLORS } from '../constants/color';
 import { useGetLogsCountQuery } from '@/store/api/logsApi';
 import { ChartSkeleton } from '../common/Skeleton';
+import { memo, useMemo } from 'react';
 
 const { Text, Title } = Typography;
 
@@ -36,66 +37,70 @@ interface LogLevelCardProps {
   color: string;
 }
 
-const LogLevelCard = ({
-  icon,
-  level,
-  count,
-  total,
-  color,
-}: LogLevelCardProps) => {
-  const percentage = Number(((count / total) * 100).toFixed(1));
+const LogLevelCard = memo(
+  ({ icon, level, count, total, color }: LogLevelCardProps) => {
+    const percentage = useMemo(
+      () => Number(((count / total) * 100).toFixed(1)),
+      [count, total],
+    );
 
-  return (
-    <Card
-      styles={{
-        body: {
-          padding: '12px',
-        },
-      }}
-    >
-      <div className="flex items-center gap-3">
-        {icon}
-        <div className="flex-1">
-          <div className="mb-2 flex items-center justify-between">
-            <Text strong className="text-sm">
-              {level}
+    return (
+      <Card
+        styles={{
+          body: {
+            padding: '12px',
+          },
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {icon}
+          <div className="flex-1">
+            <div className="mb-2 flex items-center justify-between">
+              <Text strong className="text-sm">
+                {level}
+              </Text>
+              <Text className="text-sm">{count}</Text>
+            </div>
+            <Progress
+              percent={percentage}
+              strokeColor={color}
+              trailColor={CHART_COLORS.background}
+              showInfo={false}
+              size="small"
+            />
+            <Text type="secondary" className="mt-1 block text-xs">
+              {percentage}%
             </Text>
-            <Text className="text-sm">{count}</Text>
           </div>
-          <Progress
-            percent={percentage}
-            strokeColor={color}
-            trailColor={CHART_COLORS.background}
-            showInfo={false}
-            size="small"
-          />
-          <Text type="secondary" className="mt-1 block text-xs">
-            {percentage}%
-          </Text>
         </div>
-      </div>
-    </Card>
-  );
-};
+      </Card>
+    );
+  },
+);
 
-const LogLevelDistribution = ({ logCount }: { logCount: LogCount }) => {
-  const pieData = [
-    {
-      name: 'INFO',
-      value: logCount.INFO,
-      color: CHART_COLORS.info,
-    },
-    {
-      name: 'WARN',
-      value: logCount.WARN,
-      color: CHART_COLORS.warn,
-    },
-    {
-      name: 'ERROR',
-      value: logCount.ERROR,
-      color: CHART_COLORS.error,
-    },
-  ];
+LogLevelCard.displayName = 'LogLevelCard';
+
+const LogLevelDistribution = memo(({ logCount }: { logCount: LogCount }) => {
+  const pieData = useMemo(
+    () => [
+      {
+        name: 'INFO',
+        value: logCount.INFO,
+        color: CHART_COLORS.info,
+      },
+      {
+        name: 'WARN',
+        value: logCount.WARN,
+        color: CHART_COLORS.warn,
+      },
+      {
+        name: 'ERROR',
+        value: logCount.ERROR,
+        color: CHART_COLORS.error,
+      },
+    ],
+    [logCount],
+  );
 
   return (
     <Card
@@ -130,9 +135,11 @@ const LogLevelDistribution = ({ logCount }: { logCount: LogCount }) => {
       </ResponsiveContainer>
     </Card>
   );
-};
+});
 
-const LogLevelCards = ({ logCount }: { logCount: LogCount }) => (
+LogLevelDistribution.displayName = 'LogLevelDistribution';
+
+const LogLevelCards = memo(({ logCount }: { logCount: LogCount }) => (
   <div className="flex flex-col gap-3">
     <LogLevelCard
       icon={
@@ -168,9 +175,11 @@ const LogLevelCards = ({ logCount }: { logCount: LogCount }) => (
       color={CHART_COLORS.error}
     />
   </div>
-);
+));
 
-export default function LogLevelOverview() {
+LogLevelCards.displayName = 'LogLevelCards';
+
+const LogLevelOverviewContent = memo(() => {
   const { data: logCount, isLoading } = useGetLogsCountQuery();
 
   if (isLoading || !logCount) {
@@ -207,4 +216,8 @@ export default function LogLevelOverview() {
       </Row>
     </Card>
   );
-}
+});
+
+LogLevelOverviewContent.displayName = 'LogLevelOverviewContent';
+
+export default LogLevelOverviewContent;

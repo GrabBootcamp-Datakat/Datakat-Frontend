@@ -1,8 +1,8 @@
 import { Col, Row } from 'antd';
 import LayoutScroll from '@/components/common/LayoutScroll';
 import PageTitle from '@/components/common/PageTitle';
-import LogLevelOverview from '@/components/dashboard/LogLevelOverview';
-import AnomalyDetection from '@/components/dashboard/AnomalyDetection';
+import LogLevelOverviewCard from '@/components/dashboard/LogLevelOverviewCard';
+import AnomalyDetectionCard from '@/components/dashboard/AnomalyDetectionCard';
 import TimeSeriesCard from '@/components/dashboard/TimeSeriesCard';
 import TimeDistributionCard from '@/components/dashboard/TimeDistributionCard';
 import ComponentDistributionCard from '@/components/dashboard/ComponentDistributionCard';
@@ -14,10 +14,10 @@ export default function DashboardPage() {
       <PageTitle title="Log Analytics Dashboard" />
       <Row gutter={[16, 16]}>
         <Col span={12}>
-          <LogLevelOverview />
+          <LogLevelOverviewCard />
         </Col>
         <Col span={12}>
-          <AnomalyDetection />
+          <AnomalyDetectionCard />
         </Col>
       </Row>
 

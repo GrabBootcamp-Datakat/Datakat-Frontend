@@ -1,54 +1,71 @@
-import React, { useState } from 'react';
-import { Card, Space, Button, Modal } from 'antd';
-import { SettingOutlined } from '@ant-design/icons';
-import { ChartCustomization } from './ChartCustomization';
+'use client';
+import { memo } from 'react';
+import {
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+} from 'recharts';
+import { CHART_COLORS } from '../constants/color';
 
 interface BaseChartProps {
-  title: string;
   children: React.ReactNode;
-  onCustomize: (timePattern: string) => void;
-  initialTimeValue?: string;
+  height?: number;
+  showGrid?: boolean;
+  showLegend?: boolean;
+  showTooltip?: boolean;
 }
 
-export const BaseChart: React.FC<BaseChartProps> = ({
-  title,
-  children,
-  onCustomize,
-  initialTimeValue = '1H',
-}) => {
-  const [isCustomizing, setIsCustomizing] = useState(false);
-
-  const handleCustomize = (timePattern: string) => {
-    onCustomize(timePattern);
-  };
-
-  return (
-    <Card
-      title={
-        <Space>
-          <span>{title}</span>
-          <Button
-            type="text"
-            icon={<SettingOutlined />}
-            onClick={() => setIsCustomizing(true)}
+export const BaseChart = memo(
+  ({
+    children,
+    height = 300,
+    showGrid = true,
+    showLegend = true,
+    showTooltip = true,
+  }: BaseChartProps) => {
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <div>
+          <XAxis
+            dataKey="time"
+            stroke={CHART_COLORS.text}
+            tick={{ fill: CHART_COLORS.text }}
           />
-        </Space>
-      }
-    >
-      {children}
-      <Modal
-        open={isCustomizing}
-        onCancel={() => setIsCustomizing(false)}
-        footer={null}
-        width={600}
-      >
-        <ChartCustomization
-          chartTitle={title}
-          onCustomize={handleCustomize}
-          onClose={() => setIsCustomizing(false)}
-          initialTimeValue={initialTimeValue}
-        />
-      </Modal>
-    </Card>
-  );
-};
+          <YAxis
+            stroke={CHART_COLORS.text}
+            tick={{ fill: CHART_COLORS.text }}
+          />
+          {showGrid && (
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={CHART_COLORS.grid}
+              opacity={0.5}
+            />
+          )}
+          {showTooltip && (
+            <Tooltip
+              contentStyle={{
+                backgroundColor: CHART_COLORS.background,
+                border: `1px solid ${CHART_COLORS.border}`,
+              }}
+              labelStyle={{ color: CHART_COLORS.text }}
+            />
+          )}
+          {showLegend && (
+            <Legend
+              wrapperStyle={{
+                color: CHART_COLORS.text,
+              }}
+            />
+          )}
+          {children}
+        </div>
+      </ResponsiveContainer>
+    );
+  },
+);
+
+BaseChart.displayName = 'BaseChart';

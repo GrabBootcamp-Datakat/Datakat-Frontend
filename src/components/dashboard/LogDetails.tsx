@@ -1,136 +1,108 @@
 'use client';
-import React from 'react';
-import { Card, Table, Tabs, Space, Tag, Tooltip } from 'antd';
-import {
-  AlertOutlined,
-  BarChartOutlined,
-  ClockCircleOutlined,
-  InfoCircleOutlined,
-} from '@ant-design/icons';
-import { LogLevel, LogDetails as LogDetailsType } from '@/types/log';
-import TabPane from 'antd/es/tabs/TabPane';
-import Text from 'antd/es/typography/Text';
+import React, { memo, useMemo } from 'react';
+import { Card, Table, Tag, Typography } from 'antd';
+import { LogDetails as LogDetailsType } from '@/types/log';
+import { useGetLogsQuery } from '@/store/api/logsApi';
+import { ChartSkeleton } from '../common/Skeleton';
+import type { LogEntry } from '@/types/log';
+
+const { Text: TypographyText } = Typography;
 
 export interface LogDetailsProps {
   errorLogs: LogDetailsType['errorLogs'];
   commonMessages: LogDetailsType['commonMessages'];
 }
 
-export const LogDetails = (props: LogDetailsProps) => {
-  const { errorLogs, commonMessages } = props;
+const LogLevelTag = memo(({ level }: { level: LogEntry['level'] }) => {
+  const colorMap = {
+    ERROR: 'red',
+    WARN: 'orange',
+    INFO: 'blue',
+    DEBUG: 'gray',
+  };
+
+  return (
+    <Tag color={colorMap[level]} style={{ margin: 0 }}>
+      {level}
+    </Tag>
+  );
+});
+
+LogLevelTag.displayName = 'LogLevelTag';
+
+const LogDetailsTable = memo(({ data }: { data: LogEntry[] }) => {
+  const columns = useMemo(
+    () => [
+      {
+        title: 'Timestamp',
+        dataIndex: 'timestamp',
+        key: 'timestamp',
+        render: (text: string) => (
+          <TypographyText
+            type="secondary"
+            style={{ fontFamily: 'monospace', fontSize: '12px' }}
+          >
+            {new Date(text).toLocaleString()}
+          </TypographyText>
+        ),
+      },
+      {
+        title: 'Level',
+        dataIndex: 'level',
+        key: 'level',
+        render: (text: LogEntry['level']) => <LogLevelTag level={text} />,
+      },
+      {
+        title: 'Service',
+        dataIndex: 'service',
+        key: 'service',
+      },
+      {
+        title: 'Message',
+        dataIndex: 'message',
+        key: 'message',
+        render: (text: string) => (
+          <TypographyText
+            type="secondary"
+            style={{ fontFamily: 'monospace', fontSize: '12px' }}
+          >
+            {text}
+          </TypographyText>
+        ),
+      },
+    ],
+    [],
+  );
+
+  return (
+    <Table
+      dataSource={data}
+      columns={columns}
+      rowKey="id"
+      pagination={{ pageSize: 10 }}
+      size="small"
+    />
+  );
+});
+
+LogDetailsTable.displayName = 'LogDetailsTable';
+
+export const LogDetails = memo(() => {
+  const { data: logs, isLoading } = useGetLogsQuery();
+
+  if (isLoading || !logs) {
+    return (
+      <Card title="Log Details" hoverable>
+        <ChartSkeleton />
+      </Card>
+    );
+  }
+
   return (
     <Card title="Log Details" hoverable>
-      <Tabs defaultActiveKey="1">
-        <TabPane
-          tab={
-            <Space>
-              <AlertOutlined />
-              <span>WARN & ERROR Logs</span>
-            </Space>
-          }
-          key="1"
-        >
-          <Table
-            dataSource={errorLogs}
-            columns={columns}
-            rowKey="LineId"
-            pagination={{ pageSize: 5 }}
-            size="middle"
-          />
-        </TabPane>
-        <TabPane
-          tab={
-            <Space>
-              <InfoCircleOutlined />
-              <span>Common Messages</span>
-            </Space>
-          }
-          key="2"
-        >
-          <Table
-            dataSource={commonMessages}
-            columns={messageColumns}
-            rowKey="content"
-            pagination={{ pageSize: 5 }}
-            size="middle"
-          />
-        </TabPane>
-      </Tabs>
+      <LogDetailsTable data={logs} />
     </Card>
   );
-};
+});
 
-const columns = [
-  {
-    title: 'Time',
-    dataIndex: 'Time',
-    key: 'Time',
-    render: (text: string) => (
-      <Space>
-        <ClockCircleOutlined />
-        <Text strong>{text}</Text>
-      </Space>
-    ),
-  },
-  {
-    title: 'Level',
-    dataIndex: 'Level',
-    key: 'Level',
-    render: (level: LogLevel) => (
-      <Tag
-        color={
-          level === LogLevel.INFO
-            ? 'success'
-            : level === LogLevel.WARN
-              ? 'warning'
-              : 'error'
-        }
-      >
-        {level}
-      </Tag>
-    ),
-  },
-  {
-    title: 'Component',
-    dataIndex: 'Component',
-    key: 'Component',
-    render: (text: string) => (
-      <Space>
-        <BarChartOutlined />
-        <Text code>{text}</Text>
-      </Space>
-    ),
-  },
-  {
-    title: 'Content',
-    dataIndex: 'Content',
-    key: 'Content',
-    ellipsis: true,
-    render: (text: string) => (
-      <Tooltip title={text}>
-        <Text>{text}</Text>
-      </Tooltip>
-    ),
-  },
-];
-
-const messageColumns = [
-  {
-    title: 'Message',
-    dataIndex: 'content',
-    key: 'content',
-    ellipsis: true,
-    render: (text: string) => (
-      <Tooltip title={text}>
-        <Text>{text}</Text>
-      </Tooltip>
-    ),
-  },
-  {
-    title: 'Count',
-    dataIndex: 'count',
-    key: 'count',
-    width: 100,
-    render: (count: number) => <Tag color="blue">{count}</Tag>,
-  },
-];
+LogDetails.displayName = 'LogDetails';

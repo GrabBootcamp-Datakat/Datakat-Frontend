@@ -1,48 +1,40 @@
-import React from "react";
-import { BaseChart } from "./BaseChart";
-import { Column } from "@ant-design/plots";
+'use client';
+import { memo } from 'react';
+import { Bar } from 'recharts';
+import { BaseChart } from './BaseChart';
+import { CHART_COLORS } from '../constants/color';
 
-interface ComponentDataPoint {
+interface ChartDataPoint {
   component: string;
-  value: number;
-  type: string;
+  count: number;
 }
 
 interface ComponentAnalysisChartProps {
-  data: ComponentDataPoint[];
-  onCustomize: (timePattern: string) => void;
-  initialTimeValue?: string;
+  data: ChartDataPoint[];
+  height?: number;
 }
 
-export const ComponentAnalysisChart: React.FC<ComponentAnalysisChartProps> = ({
-  data,
-  onCustomize,
-  initialTimeValue,
-}) => {
-  const config = {
-    data,
-    xField: "component",
-    yField: "value",
-    seriesField: "type",
-    isGroup: true,
-    columnStyle: {
-      radius: [20, 20, 0, 0],
-    },
-    animation: {
-      appear: {
-        animation: "wave-in",
-        duration: 1000,
-      },
-    },
-  };
+export const ComponentAnalysisChart = memo(
+  ({ data, height }: ComponentAnalysisChartProps) => {
+    // Convert data to the format expected by recharts
+    const chartData = data.map((item) => ({
+      name: item.component,
+      value: item.count,
+    }));
 
-  return (
-    <BaseChart
-      title="Component Analysis"
-      onCustomize={onCustomize}
-      initialTimeValue={initialTimeValue}
-    >
-      <Column {...config} />
-    </BaseChart>
-  );
-};
+    return (
+      <BaseChart height={height}>
+        <Bar
+          data={chartData}
+          dataKey="value"
+          fill={CHART_COLORS.total}
+          label={{ position: 'top', fill: CHART_COLORS.text }}
+          isAnimationActive={true}
+          animationDuration={1000}
+        />
+      </BaseChart>
+    );
+  },
+);
+
+ComponentAnalysisChart.displayName = 'ComponentAnalysisChart';
