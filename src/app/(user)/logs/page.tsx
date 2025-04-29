@@ -12,6 +12,7 @@ import {
   Typography,
   Dropdown,
   Menu,
+  Spin,
 } from 'antd';
 import {
   SearchOutlined,
@@ -22,105 +23,18 @@ import {
 } from '@ant-design/icons';
 import LayoutScroll from '@/components/common/LayoutScroll';
 import PageTitle from '@/components/common/PageTitle';
+import { useGetLogsQuery } from '@/store/api/logsApi';
+import type { LogEntry } from '@/types/logsType';
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
-
-/**
- * Log entry interface
- * @interface LogEntry
- */
-interface LogEntry {
-  id: string;
-  timestamp: string;
-  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
-  service: string;
-  message: string;
-}
-
-/**
- * Sample log data for demonstration
- * @constant
- */
-const logData: LogEntry[] = [
-  {
-    id: '1',
-    timestamp: '2023-04-29T14:35:42Z',
-    level: 'ERROR',
-    service: 'api-gateway',
-    message: 'Connection refused to authentication service',
-  },
-  {
-    id: '2',
-    timestamp: '2023-04-29T14:34:21Z',
-    level: 'WARN',
-    service: 'user-service',
-    message: 'Rate limit exceeded for user id: 12345',
-  },
-  {
-    id: '3',
-    timestamp: '2023-04-29T14:33:10Z',
-    level: 'INFO',
-    service: 'payment-service',
-    message: 'Payment processed successfully for order #98765',
-  },
-  {
-    id: '4',
-    timestamp: '2023-04-29T14:32:45Z',
-    level: 'DEBUG',
-    service: 'inventory-service',
-    message: 'Stock check completed for SKU: ABC123',
-  },
-  {
-    id: '5',
-    timestamp: '2023-04-29T14:31:22Z',
-    level: 'ERROR',
-    service: 'notification-service',
-    message: 'Failed to send email to user@example.com',
-  },
-  {
-    id: '6',
-    timestamp: '2023-04-29T14:30:15Z',
-    level: 'INFO',
-    service: 'auth-service',
-    message: 'User logged in: user_id=54321',
-  },
-  {
-    id: '7',
-    timestamp: '2023-04-29T14:29:30Z',
-    level: 'WARN',
-    service: 'database-service',
-    message: 'Slow query detected: SELECT * FROM users WHERE...',
-  },
-  {
-    id: '8',
-    timestamp: '2023-04-29T14:28:12Z',
-    level: 'INFO',
-    service: 'api-gateway',
-    message: 'Request processed in 235ms: GET /api/users',
-  },
-  {
-    id: '9',
-    timestamp: '2023-04-29T14:27:45Z',
-    level: 'DEBUG',
-    service: 'cache-service',
-    message: 'Cache hit for key: user:12345:profile',
-  },
-  {
-    id: '10',
-    timestamp: '2023-04-29T14:26:33Z',
-    level: 'ERROR',
-    service: 'payment-service',
-    message: 'Payment gateway timeout for transaction id: tx_789012',
-  },
-];
 
 /**
  * LogLevelBadge component for displaying log levels with appropriate styling
  * @component
  */
 const LogLevelBadge = ({ level }: { level: LogEntry['level'] }) => {
-  const colorMap = {
+  const colorMap: Record<LogEntry['level'], string> = {
     ERROR: 'red',
     WARN: 'orange',
     INFO: 'blue',
@@ -167,7 +81,13 @@ const LogFilters = ({
   levels: string[];
   services: string[];
 }) => (
-  <Card>
+  <Card
+    styles={{
+      body: {
+        padding: '24px',
+      },
+    }}
+  >
     <Card.Meta
       title="Log Filters"
       description="Filter logs by service, level, or search for specific content"
@@ -294,8 +214,10 @@ export default function LogsPage() {
   const [sortField, setSortField] = useState<SortField>('timestamp');
   const [sortOrder, setSortOrder] = useState<SortOrder>('descend');
 
+  const { data: logs = [], isLoading } = useGetLogsQuery();
+
   // Filter logs based on search query and filters
-  const filteredLogs = logData.filter((log) => {
+  const filteredLogs = logs.filter((log) => {
     const matchesSearch =
       log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.service.toLowerCase().includes(searchQuery.toLowerCase());
@@ -327,8 +249,8 @@ export default function LogsPage() {
   });
 
   // Get unique services and levels for filter options
-  const services = Array.from(new Set(logData.map((log) => log.service)));
-  const levels = Array.from(new Set(logData.map((log) => log.level)));
+  const services = Array.from(new Set(logs.map((log) => log.service)));
+  const levels = Array.from(new Set(logs.map((log) => log.level)));
 
   // Sort menu items
   const sortMenu = (
@@ -399,7 +321,14 @@ export default function LogsPage() {
             services={services}
           />
 
-          <Card className="mt-4">
+          <Card
+            className="mt-4"
+            styles={{
+              body: {
+                padding: '24px',
+              },
+            }}
+          >
             <div className="mb-4 flex items-center justify-between">
               <Title level={4}>All Logs</Title>
               <Space>
@@ -410,28 +339,70 @@ export default function LogsPage() {
                 </Dropdown>
               </Space>
             </div>
-            <LogsTable data={sortedLogs} />
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <Spin size="large" />
+              </div>
+            ) : (
+              <LogsTable data={sortedLogs} />
+            )}
           </Card>
         </TabPane>
 
         <TabPane tab="Errors" key="errors">
-          <Card>
+          <Card
+            styles={{
+              body: {
+                padding: '24px',
+              },
+            }}
+          >
             <Title level={4}>Error Logs</Title>
-            <LogsTable data={logData.filter((log) => log.level === 'ERROR')} />
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <Spin size="large" />
+              </div>
+            ) : (
+              <LogsTable data={logs.filter((log) => log.level === 'ERROR')} />
+            )}
           </Card>
         </TabPane>
 
         <TabPane tab="Warnings" key="warnings">
-          <Card>
+          <Card
+            styles={{
+              body: {
+                padding: '24px',
+              },
+            }}
+          >
             <Title level={4}>Warning Logs</Title>
-            <LogsTable data={logData.filter((log) => log.level === 'WARN')} />
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <Spin size="large" />
+              </div>
+            ) : (
+              <LogsTable data={logs.filter((log) => log.level === 'WARN')} />
+            )}
           </Card>
         </TabPane>
 
         <TabPane tab="Info" key="info">
-          <Card>
+          <Card
+            styles={{
+              body: {
+                padding: '24px',
+              },
+            }}
+          >
             <Title level={4}>Info Logs</Title>
-            <LogsTable data={logData.filter((log) => log.level === 'INFO')} />
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <Spin size="large" />
+              </div>
+            ) : (
+              <LogsTable data={logs.filter((log) => log.level === 'INFO')} />
+            )}
           </Card>
         </TabPane>
       </Tabs>

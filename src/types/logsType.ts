@@ -1,17 +1,17 @@
 export enum LogLevel {
-  INFO = "INFO",
-  WARN = "WARN",
-  ERROR = "ERROR",
-  DEBUG = "DEBUG",
+  INFO = 'INFO',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
+  DEBUG = 'DEBUG',
 }
 
 export enum TimeUnit {
-  SECOND = "second",
-  MINUTE = "minute",
-  HOUR = "hour",
-  DAY = "day",
-  MONTH = "month",
-  YEAR = "year",
+  SECOND = 'second',
+  MINUTE = 'minute',
+  HOUR = 'hour',
+  DAY = 'day',
+  MONTH = 'month',
+  YEAR = 'year',
 }
 
 export interface Log {
@@ -50,4 +50,12 @@ export interface LogDetails {
     message: string;
     count: number;
   }>;
+}
+
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+  service: string;
+  message: string;
 }
