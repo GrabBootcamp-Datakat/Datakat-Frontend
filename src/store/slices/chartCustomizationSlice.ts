@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { TimeUnit, LogLevel } from "@/types/logsType";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { TimeUnit, LogLevel } from '@/types/log';
 
 export interface TimeDataPoint {
   time: string;
@@ -35,32 +35,32 @@ export interface ChartCustomizationState {
 const initialState: ChartCustomizationState = {
   timeAnalysis: {
     isCustomizing: false,
-    query: "",
+    query: '',
     timeUnit: TimeUnit.HOUR,
     data: [],
   },
   componentAnalysis: {
     isCustomizing: false,
-    query: "",
+    query: '',
     data: [],
   },
 };
 
 const chartCustomizationSlice = createSlice({
-  name: "chartCustomization",
+  name: 'chartCustomization',
   initialState,
   reducers: {
     setTimeAnalysisCustomization: (
       state,
-      action: PayloadAction<Partial<ChartCustomizationState["timeAnalysis"]>>
+      action: PayloadAction<Partial<ChartCustomizationState['timeAnalysis']>>,
     ) => {
       state.timeAnalysis = { ...state.timeAnalysis, ...action.payload };
     },
     setComponentAnalysisCustomization: (
       state,
       action: PayloadAction<
-        Partial<ChartCustomizationState["componentAnalysis"]>
-      >
+        Partial<ChartCustomizationState['componentAnalysis']>
+      >,
     ) => {
       state.componentAnalysis = {
         ...state.componentAnalysis,

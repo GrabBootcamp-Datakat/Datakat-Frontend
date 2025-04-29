@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Input, Select, Space, Typography } from "antd";
-import { TimeUnit } from "@/types/logsType";
+import React, { useState } from 'react';
+import { Input, Select, Space, Typography } from 'antd';
+import { TimeUnit } from '@/types/log';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -12,7 +12,7 @@ interface TimeCustomizationProps {
 
 export const TimeCustomization: React.FC<TimeCustomizationProps> = ({
   onTimeChange,
-  label = "Time Range",
+  label = 'Time Range',
 }) => {
   const [unit, setUnit] = useState<TimeUnit>(TimeUnit.HOUR);
   const [number, setNumber] = useState<number>(1);
@@ -31,25 +31,25 @@ export const TimeCustomization: React.FC<TimeCustomizationProps> = ({
   };
 
   const availableUnits = Object.values(TimeUnit).filter(
-    (unit) => unit !== TimeUnit.SECOND && unit !== TimeUnit.MINUTE
+    (unit) => unit !== TimeUnit.SECOND && unit !== TimeUnit.MINUTE,
   );
 
   const getUnitLabel = (unit: TimeUnit): string => {
     switch (unit) {
       case TimeUnit.YEAR:
-        return "Years";
+        return 'Years';
       case TimeUnit.MONTH:
-        return "Months";
+        return 'Months';
       case TimeUnit.DAY:
-        return "Days";
+        return 'Days';
       case TimeUnit.HOUR:
-        return "Hours";
+        return 'Hours';
       case TimeUnit.MINUTE:
-        return "Minutes";
+        return 'Minutes';
       case TimeUnit.SECOND:
-        return "Seconds";
+        return 'Seconds';
       default:
-        return "Milliseconds";
+        return 'Milliseconds';
     }
   };
 

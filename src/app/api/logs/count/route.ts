@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { LogCountDto } from '@/types/logsType';
+import { LogCountDto } from '@/types/log';
 import { logs } from '@/app/api/data';
 
 export async function GET() {

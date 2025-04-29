@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { TimeUnit } from '@/types/logsType';
+import { TimeUnit } from '@/types/log';
 import { TimeDataPoint } from '@/store/slices/chartCustomizationSlice';
 import { logs } from '@/app/api/data';
 

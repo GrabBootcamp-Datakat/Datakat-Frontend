@@ -24,7 +24,7 @@ import {
 import LayoutScroll from '@/components/common/LayoutScroll';
 import PageTitle from '@/components/common/PageTitle';
 import { useGetLogsQuery } from '@/store/api/logsApi';
-import type { LogEntry } from '@/types/logsType';
+import type { LogEntry } from '@/types/log';
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;

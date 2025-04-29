@@ -95,10 +95,14 @@ const Introduction = () => {
         <Col xs={24} lg={12}>
           <Card
             className="!w-full !rounded-xl !shadow-xl !transition-all !duration-300 hover:!shadow-2xl"
-            bodyStyle={{ padding: '24px' }}
             style={{
               background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
               border: '1px solid rgba(226, 232, 240, 0.8)',
+            }}
+            styles={{
+              body: {
+                padding: '24px',
+              },
             }}
           >
             <Space direction="vertical" size="large" className="!w-full">

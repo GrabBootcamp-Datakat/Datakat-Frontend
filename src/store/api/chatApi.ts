@@ -1,16 +1,5 @@
 import { appApi } from './appApi';
-
-interface ChartData {
-  type: 'line' | 'bar' | 'pie';
-  title: string;
-  data: any[];
-  config?: any;
-}
-
-interface ChatResponse {
-  content: string;
-  data?: ChartData;
-}
+import { ChatResponse } from '@/types/chat';
 
 export const chatApi = appApi.injectEndpoints({
   endpoints: (builder) => ({

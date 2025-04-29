@@ -10,22 +10,10 @@ import { useState, useRef, useEffect } from 'react';
 import PageTitle from '@/components/common/PageTitle';
 import { Line, Bar, Pie } from '@ant-design/plots';
 import { useSendChatMessageMutation } from '@/store/api/chatApi';
-import type { ChartData } from '@/types/chart';
+import { Message, ChartData } from '@/types/chat';
 
 const { TextArea } = Input;
 const { Text } = Typography;
-
-/**
- * Message interface representing a chat message
- * @interface Message
- */
-interface Message {
-  id: number;
-  content: string;
-  sender: 'user' | 'bot';
-  timestamp: string;
-  data?: ChartData;
-}
 
 /**
  * Example queries to help users get started
@@ -43,7 +31,7 @@ const exampleQueries = [
  * Chart component for visualizing data
  * @component
  */
-const ChartVisualization = ({ data }: { data: Message['data'] }) => {
+const ChartVisualization = ({ data }: { data: ChartData }) => {
   if (!data) return null;
 
   const chartProps = {

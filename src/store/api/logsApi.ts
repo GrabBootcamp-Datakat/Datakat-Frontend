@@ -3,7 +3,7 @@ import {
   TimeDataPoint,
 } from '../slices/chartCustomizationSlice';
 import { appApi } from './appApi';
-import { LogEntry, LogCountDto, TimeUnit } from '@/types/logsType';
+import { LogEntry, LogCountDto, TimeUnit } from '@/types/log';
 
 export const logsApi = appApi.injectEndpoints({
   endpoints: (builder) => ({

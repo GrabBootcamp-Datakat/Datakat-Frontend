@@ -24,16 +24,47 @@ export interface Log {
   EventId: string;
 }
 
+export interface TimeDataPoint {
+  time: string;
+  count: number;
+}
+
+export interface ComponentDataPoint {
+  component: string;
+  count: number;
+}
+
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+  service: string;
+  message: string;
+}
+
 export interface LogCountDto {
   total: number;
   INFO: number;
   WARN: number;
   ERROR: number;
   DEBUG: number;
-  defaultDateRange?: {
-    startDate: string;
-    endDate: string;
-  };
+}
+
+export interface TimeDistributionDto {
+  hour: string;
+  INFO: number;
+  WARN: number;
+  ERROR: number;
+}
+
+export interface ComponentDto {
+  name: string;
+  value: number;
+}
+
+export interface EventFrequencyDto {
+  eventId: string;
+  count: number;
 }
 
 export interface LogStats {
@@ -50,12 +81,4 @@ export interface LogDetails {
     message: string;
     count: number;
   }>;
-}
-
-export interface LogEntry {
-  id: string;
-  timestamp: string;
-  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
-  service: string;
-  message: string;
 }
