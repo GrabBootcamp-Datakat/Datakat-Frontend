@@ -1,7 +1,11 @@
 'use client';
 
 import { Input, Button, Typography, Avatar, Space, Card } from 'antd';
-import { SendOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  SendOutlined,
+  UserOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
 import { useState, useRef, useEffect } from 'react';
 import PageTitle from '@/components/common/PageTitle';
 import { Line, Bar, Pie } from '@ant-design/plots';
@@ -71,8 +75,8 @@ const ChatMessage = ({ message }: { message: Message }) => {
       <div className="!flex !max-w-3xl !items-start !gap-3">
         {!isUser && (
           <Avatar
-            icon={<RobotOutlined />}
-            style={{ backgroundColor: '#1890ff' }}
+            icon={<ThunderboltOutlined className="!text-blue-600" />}
+            style={{ backgroundColor: '#fff', border: '1px solid #e0e0e0' }}
           />
         )}
         <Card
@@ -114,8 +118,8 @@ const ChatMessage = ({ message }: { message: Message }) => {
         </Card>
         {isUser && (
           <Avatar
-            icon={<UserOutlined />}
-            style={{ backgroundColor: '#52c41a' }}
+            icon={<UserOutlined className="!text-gray-600" />}
+            style={{ backgroundColor: '#fff', border: '1px solid #e0e0e0' }}
           />
         )}
       </div>
@@ -270,7 +274,7 @@ export default function ChatPage() {
       <PageTitle title="Natural Language Query" />
 
       {/* Chat Messages */}
-      <div className="scrollbar-hide flex-1 overflow-y-auto rounded-lg border border-gray-200 p-4">
+      <div className="scrollbar-hide flex-1 space-y-4 overflow-y-auto rounded-lg border border-gray-200 p-4">
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}
