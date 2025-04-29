@@ -4,6 +4,9 @@ import { Input, Button, Typography, Avatar, Space, Card } from 'antd';
 import { SendOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { useState, useRef, useEffect } from 'react';
 import PageTitle from '@/components/common/PageTitle';
+import { Line, Bar, Pie } from '@ant-design/plots';
+import { useSendChatMessageMutation } from '@/store/api/chatApi';
+import type { ChartData } from '@/types/chart';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -11,16 +14,13 @@ const { Text } = Typography;
 /**
  * Message interface representing a chat message
  * @interface Message
- * @property {number} id - Unique identifier for the message
- * @property {string} content - The message content
- * @property {'user' | 'bot'} sender - Who sent the message
- * @property {string} timestamp - When the message was sent
  */
 interface Message {
   id: number;
   content: string;
   sender: 'user' | 'bot';
   timestamp: string;
+  data?: ChartData;
 }
 
 /**
@@ -34,6 +34,30 @@ const exampleQueries = [
   "What's causing the high memory usage on db-server-01?",
   'Show me the correlation between response time and user traffic',
 ];
+
+/**
+ * Chart component for visualizing data
+ * @component
+ */
+const ChartVisualization = ({ data }: { data: Message['data'] }) => {
+  if (!data) return null;
+
+  const chartProps = {
+    data: data.data,
+    ...data.config,
+  };
+
+  switch (data.type) {
+    case 'line':
+      return <Line {...chartProps} />;
+    case 'bar':
+      return <Bar {...chartProps} />;
+    case 'pie':
+      return <Pie {...chartProps} />;
+    default:
+      return null;
+  }
+};
 
 /**
  * ChatMessage component for displaying individual messages
@@ -69,6 +93,14 @@ const ChatMessage = ({ message }: { message: Message }) => {
             >
               {message.content}
             </Text>
+            {message.data && (
+              <div className="mt-4">
+                <Text strong>{message.data.title}</Text>
+                <div className="mt-2" style={{ height: '300px' }}>
+                  <ChartVisualization data={message.data} />
+                </div>
+              </div>
+            )}
             <Text
               type="secondary"
               style={{
@@ -102,7 +134,7 @@ const ExampleQueries = ({
 }) => (
   <div>
     <Text type="secondary" style={{ fontSize: '12px', marginBottom: '8px' }}>
-      ; Example queries
+      Example queries
     </Text>
     <Space wrap>
       {exampleQueries.map((example, index) => (
@@ -185,8 +217,8 @@ export default function ChatPage() {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sendChatMessage, { isLoading }] = useSendChatMessageMutation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -208,26 +240,33 @@ export default function ChatPage() {
 
     setMessages([...messages, newMessage]);
     setInputValue('');
-    setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const response = await sendChatMessage(inputValue).unwrap();
       const botResponse: Message = {
         id: messages.length + 2,
-        content:
-          "I'm analyzing your query. Here's what I found:\n\n1. The data shows a clear correlation between CPU usage spikes and increased user traffic.\n2. There's an anomaly at 4 PM that doesn't correlate with traffic patterns.\n3. The application might benefit from additional caching during peak hours (10 AM - 2 PM).",
+        content: response.content,
+        sender: 'bot',
+        timestamp: new Date().toLocaleTimeString(),
+        data: response.data,
+      };
+      setMessages((prev) => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: messages.length + 2,
+        content: 'Sorry, I encountered an error while processing your request.',
         sender: 'bot',
         timestamp: new Date().toLocaleTimeString(),
       };
-      setMessages((prev) => [...prev, botResponse]);
-      setIsLoading(false);
-    }, 1500);
+      setMessages((prev) => [...prev, errorMessage]);
+    }
   };
 
   const hasUserMessages = messages.some((m) => m.sender === 'user');
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-4 px-8">
       <PageTitle title="Natural Language Query" />
 
       {/* Chat Messages */}
