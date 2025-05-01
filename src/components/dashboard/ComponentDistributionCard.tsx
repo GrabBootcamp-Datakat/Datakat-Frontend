@@ -38,7 +38,7 @@ export default function ComponentDistributionCard() {
   }
 
   if (!componentAnalysisData || !componentData) {
-    return <NoDataStatus />;
+    return <NoDataStatus title="Component Distribution" />;
   }
 
   return (

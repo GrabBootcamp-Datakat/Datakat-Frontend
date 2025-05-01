@@ -44,17 +44,15 @@ export const ErrorStatus = (props: ErrorStatusProps) => {
   );
 };
 
-export const NoDataStatus = () => {
+export const NoDataStatus = ({ title }: { title: string }) => {
   return (
-    <div className="flex items-center justify-center">
-      <Card>
-        <Space direction="vertical" align="center">
-          <Title level={4}>No Log Data Available</Title>
-          <Text type="secondary">
-            Please check if the log file exists and is properly formatted.
-          </Text>
-        </Space>
-      </Card>
-    </div>
+    <Card title={title} style={{ height: '420px' }}>
+      <Space direction="vertical" align="center">
+        <Text type="secondary">
+          Some data is missing, please check if the log file exists and is
+          properly formatted.
+        </Text>
+      </Space>
+    </Card>
   );
 };

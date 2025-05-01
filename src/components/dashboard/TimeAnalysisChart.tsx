@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { Area } from 'recharts';
 import { BaseChart } from './BaseChart';
 import { CHART_COLORS } from '../constants/color';
-import type { TimeDataPoint } from '@/types/log';
+import type { TimeDataPoint } from '@/types/logs';
 
 interface TimeAnalysisChartProps {
   data: TimeDataPoint[];

@@ -12,12 +12,17 @@ import {
 import { CHART_COLORS } from '../constants/color';
 import { useGetTimeDistributionQuery } from '@/store/api/logsApi';
 import { ChartSkeleton } from '../common/Skeleton';
+import { NoDataStatus } from '../common/Status';
 
 export default function TimeDistributionCard() {
   const { data: hourlyDistribution, isLoading } = useGetTimeDistributionQuery();
 
   if (isLoading) {
     return <ChartSkeleton title="Time Distribution" />;
+  }
+
+  if (!hourlyDistribution) {
+    return <NoDataStatus title="Time Distribution" />;
   }
 
   return (

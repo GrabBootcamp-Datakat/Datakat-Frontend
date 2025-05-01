@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TimeUnit, LogLevel } from '@/types/log';
+import { TimeUnit, LogLevel } from '@/types/logs';
 
 export interface TimeDataPoint {
   time: string;

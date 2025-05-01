@@ -1,13 +1,13 @@
-"use client";
-import createWebStorage from "redux-persist/lib/storage/createWebStorage";
-import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
-import { setupListeners } from "@reduxjs/toolkit/query";
+'use client';
+import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
+import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import {
   configureStore,
   combineReducers,
   Reducer,
   Action,
-} from "@reduxjs/toolkit";
+} from '@reduxjs/toolkit';
 import {
   persistStore,
   persistReducer,
@@ -17,11 +17,11 @@ import {
   PERSIST,
   PURGE,
   REGISTER,
-} from "redux-persist";
-import { appApi } from "@/store/api/appApi";
+} from 'redux-persist';
+import { appApi } from '@/store/api/appApi';
 import chartCustomizationReducer, {
   ChartCustomizationState,
-} from "@/store/slices/chartCustomizationSlice";
+} from '@/store/slices/chartCustomizationSlice';
 
 const createNoopStorage = () => {
   return {
@@ -38,8 +38,8 @@ const createNoopStorage = () => {
 };
 
 const storage =
-  typeof window !== "undefined"
-    ? createWebStorage("local")
+  typeof window !== 'undefined'
+    ? createWebStorage('local')
     : createNoopStorage();
 
 export type RootState = {
@@ -48,10 +48,10 @@ export type RootState = {
 };
 
 const persistConfig = {
-  key: "root",
+  key: 'root',
   storage,
   stateReconciler: autoMergeLevel2,
-  whitelist: ["chartCustomization"],
+  whitelist: ['chartCustomization'],
 };
 
 const appReducer = combineReducers({

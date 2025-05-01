@@ -1,3 +1,4 @@
+'use client';
 import { appApi } from './appApi';
 import { ChatResponse } from '@/types/chat';
 

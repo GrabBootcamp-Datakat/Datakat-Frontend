@@ -103,14 +103,7 @@ const LogLevelDistribution = memo(({ logCount }: { logCount: LogCount }) => {
   );
 
   return (
-    <Card
-      style={{ height: '100%' }}
-      styles={{
-        body: {
-          padding: '12px',
-        },
-      }}
-    >
+    <Card style={{ height: '100%' }}>
       <Title level={5} className="mb-3 text-sm">
         Log Level Distribution
       </Title>
@@ -196,11 +189,6 @@ const LogLevelOverviewContent = memo(() => {
       }
       hoverable
       style={{ flex: 2 }}
-      styles={{
-        body: {
-          padding: '12px',
-        },
-      }}
     >
       <Row gutter={[12, 12]}>
         <Col span={12}>

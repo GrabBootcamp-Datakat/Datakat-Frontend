@@ -12,7 +12,7 @@ import {
   Area,
 } from 'recharts';
 import { SettingOutlined } from '@ant-design/icons';
-import { TimeUnit } from '@/types/log';
+import { TimeUnit } from '@/types/logs';
 import { CHART_COLORS } from '../constants/color';
 import { setTimeAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
 import { useAppDispatch } from '@/lib/hooks/hook';

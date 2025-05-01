@@ -1,6 +1,5 @@
 'use client';
-
-import { useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   Input,
   Button,
@@ -12,7 +11,7 @@ import {
   Typography,
   Dropdown,
   Menu,
-  Spin,
+  DatePicker,
 } from 'antd';
 import {
   SearchOutlined,
@@ -23,18 +22,317 @@ import {
 } from '@ant-design/icons';
 import LayoutScroll from '@/components/common/LayoutScroll';
 import PageTitle from '@/components/common/PageTitle';
-import { useGetLogsQuery } from '@/store/api/logsApi';
-import type { LogEntry } from '@/types/log';
+import {
+  useGetLogsQuery,
+  useGetLogsApplicationsQuery,
+} from '@/store/api/logsApi';
+import type { LogEntry } from '@/types/logs';
+import { LogLevel, SortBy, SortOrder } from '@/types/logs';
+import { TablePaginationConfig } from 'antd/es/table';
+import { useDebounce } from '@/hooks/useDebounce';
+import dayjs from 'dayjs';
+import { TableSkeleton } from '@/components/common/Skeleton';
 
-const { TabPane } = Tabs;
 const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
+
+/**
+ * Main LogsPage component
+ * @component
+ */
+export default function LogsPage() {
+  // Combine related states
+  const [filters, setFilters] = useState<FilterState>({
+    searchQuery: '',
+    levelFilter: [],
+    serviceFilter: [],
+    dateRange: [dayjs().subtract(25, 'year'), dayjs()],
+  });
+
+  const [pagination, setPagination] = useState<PaginationState>({
+    currentPage: 1,
+    pageSize: 10,
+  });
+
+  const [sort, setSort] = useState<SortState>({
+    sortField: SortBy.TIMESTAMP,
+    sortOrder: SortOrder.DESC,
+  });
+
+  // Debounce search query
+  const debouncedSearchQuery = useDebounce(filters.searchQuery, 500);
+
+  // Memoize query parameters
+  const queryParams = useMemo(
+    () => ({
+      startTime: filters.dateRange[0].toISOString(),
+      endTime: filters.dateRange[1].toISOString(),
+      query: debouncedSearchQuery,
+      levels: filters.levelFilter,
+      applications: filters.serviceFilter,
+      sortBy: sort.sortField,
+      sortOrder: sort.sortOrder,
+      page: pagination.currentPage,
+      size: pagination.pageSize,
+    }),
+    [
+      filters.dateRange,
+      debouncedSearchQuery,
+      filters.levelFilter,
+      filters.serviceFilter,
+      sort.sortField,
+      sort.sortOrder,
+      pagination.currentPage,
+      pagination.pageSize,
+    ],
+  );
+
+  // API queries
+  const { data, isLoading } = useGetLogsQuery(queryParams);
+  const { data: applicationsData } = useGetLogsApplicationsQuery({
+    startTime: filters.dateRange[0].toISOString(),
+    endTime: filters.dateRange[1].toISOString(),
+  });
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  }, [
+    debouncedSearchQuery,
+    filters.levelFilter,
+    filters.serviceFilter,
+    filters.dateRange,
+  ]);
+
+  // Memoize handlers
+  const handleSearchChange = useCallback((value: string) => {
+    setFilters((prev) => ({ ...prev, searchQuery: value }));
+  }, []);
+
+  const handleLevelFilterChange = useCallback((value: LogLevel[]) => {
+    setFilters((prev) => ({ ...prev, levelFilter: value }));
+  }, []);
+
+  const handleServiceFilterChange = useCallback((value: string[]) => {
+    setFilters((prev) => ({ ...prev, serviceFilter: value }));
+  }, []);
+
+  const handleDateRangeChange = useCallback(
+    (dates: [dayjs.Dayjs, dayjs.Dayjs] | null) => {
+      if (dates) {
+        setFilters((prev) => ({ ...prev, dateRange: dates }));
+      }
+    },
+    [],
+  );
+
+  const handleTableChange = useCallback(
+    (newPagination: TablePaginationConfig) => {
+      setPagination({
+        currentPage: newPagination.current || 1,
+        pageSize: newPagination.pageSize || 50,
+      });
+    },
+    [],
+  );
+
+  const handleSortChange = useCallback((field: SortBy) => {
+    setSort((prev) => ({
+      sortField: field,
+      sortOrder:
+        prev.sortField === field && prev.sortOrder === SortOrder.ASC
+          ? SortOrder.DESC
+          : SortOrder.ASC,
+    }));
+  }, []);
+
+  // Memoize sort menu
+  const sortMenu = useMemo(
+    () => (
+      <Menu
+        items={[
+          {
+            key: SortBy.TIMESTAMP,
+            label: 'Timestamp',
+            onClick: () => handleSortChange(SortBy.TIMESTAMP),
+          },
+          {
+            key: SortBy.LEVEL,
+            label: 'Level',
+            onClick: () => handleSortChange(SortBy.LEVEL),
+          },
+          {
+            key: SortBy.APPLICATION,
+            label: 'Application',
+            onClick: () => handleSortChange(SortBy.APPLICATION),
+          },
+        ]}
+      />
+    ),
+    [handleSortChange],
+  );
+
+  // Memoize tab items
+  const tabItems = useMemo(
+    () => [
+      {
+        key: 'all',
+        label: 'All Logs',
+        children: (
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <LogFilters
+              searchQuery={filters.searchQuery}
+              setSearchQuery={handleSearchChange}
+              levelFilter={filters.levelFilter}
+              setLevelFilter={handleLevelFilterChange}
+              serviceFilter={filters.serviceFilter}
+              setServiceFilter={handleServiceFilterChange}
+              dateRange={filters.dateRange}
+              setDateRange={handleDateRangeChange}
+              services={applicationsData?.applications || []}
+            />
+
+            <Card>
+              <div className="mb-4 flex items-center justify-between">
+                <Title level={4}>All Logs</Title>
+                <Space>
+                  <Dropdown overlay={sortMenu} trigger={['click']}>
+                    <Button icon={<SortAscendingOutlined />}>
+                      Sort by {sort.sortField} <DownOutlined />
+                    </Button>
+                  </Dropdown>
+                </Space>
+              </div>
+              {isLoading ? (
+                <TableSkeleton />
+              ) : (
+                <LogsTable
+                  data={data?.logs || []}
+                  pagination={{
+                    current: pagination.currentPage,
+                    pageSize: pagination.pageSize,
+                    total: data?.total || 0,
+                    showSizeChanger: true,
+                    showTotal: (total) => `Total ${total} items`,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                  }}
+                  onChange={handleTableChange}
+                />
+              )}
+            </Card>
+          </Space>
+        ),
+      },
+      {
+        key: 'errors',
+        label: 'Errors',
+        children: (
+          <LogsCard
+            title="Errors"
+            isLoading={isLoading}
+            data={
+              data?.logs.filter((log) => log.level === LogLevel.ERROR) || []
+            }
+          />
+        ),
+      },
+      {
+        key: 'warnings',
+        label: 'Warnings',
+        children: (
+          <LogsCard
+            title="Warnings"
+            isLoading={isLoading}
+            data={data?.logs.filter((log) => log.level === LogLevel.WARN) || []}
+          />
+        ),
+      },
+      {
+        key: 'info',
+        label: 'Info',
+        children: (
+          <LogsCard
+            title="Info Logs"
+            isLoading={isLoading}
+            data={data?.logs.filter((log) => log.level === LogLevel.INFO) || []}
+          />
+        ),
+      },
+    ],
+    [
+      filters,
+      applicationsData?.applications,
+      sort.sortField,
+      sortMenu,
+      isLoading,
+      data?.logs,
+      data?.total,
+      pagination,
+      handleSearchChange,
+      handleLevelFilterChange,
+      handleServiceFilterChange,
+      handleDateRangeChange,
+      handleTableChange,
+    ],
+  );
+
+  return (
+    <LayoutScroll>
+      <div className="flex items-center justify-between">
+        <PageTitle title="Logs" />
+        <div className="flex items-center space-x-2">
+          <ClockCircleOutlined className="text-gray-400" />
+          <Text type="secondary" style={{ fontSize: '14px' }}>
+            Last updated: {new Date().toLocaleTimeString()}
+          </Text>
+        </div>
+      </div>
+
+      <Tabs defaultActiveKey="all" items={tabItems} />
+    </LayoutScroll>
+  );
+}
+
+interface FilterState {
+  searchQuery: string;
+  levelFilter: LogLevel[];
+  serviceFilter: string[];
+  dateRange: [dayjs.Dayjs, dayjs.Dayjs];
+}
+
+interface PaginationState {
+  currentPage: number;
+  pageSize: number;
+}
+
+interface SortState {
+  sortField: SortBy;
+  sortOrder: SortOrder;
+}
+
+const LogsCard = ({
+  title,
+  isLoading,
+  data,
+}: {
+  title: string;
+  isLoading: boolean;
+  data: LogEntry[];
+}) => {
+  return (
+    <Card>
+      <Title level={4}>{title}</Title>
+      {isLoading ? <TableSkeleton /> : <LogsTable data={data || []} />}
+    </Card>
+  );
+};
 
 /**
  * LogLevelBadge component for displaying log levels with appropriate styling
  * @component
  */
-const LogLevelBadge = ({ level }: { level: LogEntry['level'] }) => {
-  const colorMap: Record<LogEntry['level'], string> = {
+const LogLevelBadge = ({ level }: { level: LogLevel }) => {
+  const colorMap: Record<LogLevel, string> = {
     ERROR: 'red',
     WARN: 'orange',
     INFO: 'blue',
@@ -69,32 +367,28 @@ const LogFilters = ({
   setLevelFilter,
   serviceFilter,
   setServiceFilter,
-  levels,
+  dateRange,
+  setDateRange,
   services,
 }: {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  levelFilter: string;
-  setLevelFilter: (value: string) => void;
-  serviceFilter: string;
-  setServiceFilter: (value: string) => void;
-  levels: string[];
+  levelFilter: LogLevel[];
+  setLevelFilter: (value: LogLevel[]) => void;
+  serviceFilter: string[];
+  setServiceFilter: (value: string[]) => void;
+  dateRange: [dayjs.Dayjs, dayjs.Dayjs];
+  setDateRange: (value: [dayjs.Dayjs, dayjs.Dayjs]) => void;
   services: string[];
 }) => (
-  <Card
-    styles={{
-      body: {
-        padding: '24px',
-      },
-    }}
-  >
+  <Card>
     <Card.Meta
       title="Log Filters"
       description="Filter logs by service, level, or search for specific content"
     />
     <div className="mt-4">
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        <Space>
+        <Space wrap>
           <Input
             prefix={<SearchOutlined />}
             placeholder="Search logs..."
@@ -103,31 +397,41 @@ const LogFilters = ({
             style={{ width: 300 }}
           />
           <Select
+            mode="multiple"
             value={levelFilter}
             onChange={setLevelFilter}
-            style={{ width: 150 }}
-            placeholder="Select level"
+            style={{ width: 200 }}
+            placeholder="Select levels"
+            allowClear
           >
-            <Select.Option value="all">All Levels</Select.Option>
-            {levels.map((level) => (
+            {Object.values(LogLevel).map((level) => (
               <Select.Option key={level} value={level}>
                 {level}
               </Select.Option>
             ))}
           </Select>
           <Select
+            mode="multiple"
             value={serviceFilter}
             onChange={setServiceFilter}
-            style={{ width: 150 }}
-            placeholder="Select service"
+            style={{ width: 200 }}
+            placeholder="Select services"
+            allowClear
           >
-            <Select.Option value="all">All Services</Select.Option>
             {services.map((service) => (
               <Select.Option key={service} value={service}>
                 {service}
               </Select.Option>
             ))}
           </Select>
+          <RangePicker
+            value={dateRange}
+            onChange={(dates) =>
+              dates && setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])
+            }
+            showTime
+            format="YYYY-MM-DD HH:mm:ss"
+          />
         </Space>
       </Space>
     </div>
@@ -138,13 +442,20 @@ const LogFilters = ({
  * LogsTable component for displaying logs in a table format
  * @component
  */
-const LogsTable = ({ data }: { data: LogEntry[] }) => {
+const LogsTable = ({
+  data,
+  pagination,
+  onChange,
+}: {
+  data: LogEntry[];
+  pagination?: TablePaginationConfig;
+  onChange?: (pagination: TablePaginationConfig) => void;
+}) => {
   const columns = [
     {
       title: 'Timestamp',
-      dataIndex: 'timestamp',
-      key: 'timestamp',
-      width: 180,
+      dataIndex: '@timestamp',
+      key: '@timestamp',
       render: (text: string) => (
         <Text
           type="secondary"
@@ -158,22 +469,25 @@ const LogsTable = ({ data }: { data: LogEntry[] }) => {
       title: 'Level',
       dataIndex: 'level',
       key: 'level',
-      width: 100,
-      render: (text: LogEntry['level']) => <LogLevelBadge level={text} />,
+      render: (text: LogLevel) => <LogLevelBadge level={text} />,
     },
     {
-      title: 'Service',
-      dataIndex: 'service',
-      key: 'service',
-      width: 150,
+      title: 'Application',
+      dataIndex: 'application',
+      key: 'application',
     },
     {
-      title: 'Message',
-      dataIndex: 'message',
-      key: 'message',
+      title: 'Component',
+      dataIndex: 'component',
+      key: 'component',
+    },
+    {
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
       render: (text: string, record: LogEntry) => (
         <Space>
-          {record.level === 'ERROR' && (
+          {record.level === LogLevel.ERROR && (
             <WarningOutlined style={{ color: 'red' }} />
           )}
           <Text
@@ -185,227 +499,29 @@ const LogsTable = ({ data }: { data: LogEntry[] }) => {
         </Space>
       ),
     },
+    {
+      title: 'Source File',
+      dataIndex: 'source_file',
+      key: 'source_file',
+      render: (text: string) => (
+        <Text
+          type="secondary"
+          style={{ fontFamily: 'monospace', fontSize: '12px' }}
+        >
+          {text}
+        </Text>
+      ),
+    },
   ];
 
   return (
     <Table
       dataSource={data}
       columns={columns}
-      rowKey="id"
-      pagination={{ pageSize: 10 }}
+      rowKey="@timestamp"
+      pagination={pagination}
+      onChange={onChange}
+      scroll={{ x: 1200 }}
     />
   );
 };
-
-/**
- * Sort options for logs
- */
-type SortField = 'timestamp' | 'level' | 'service';
-type SortOrder = 'ascend' | 'descend';
-
-/**
- * Main LogsPage component
- * @component
- */
-export default function LogsPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [levelFilter, setLevelFilter] = useState('all');
-  const [serviceFilter, setServiceFilter] = useState('all');
-  const [sortField, setSortField] = useState<SortField>('timestamp');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('descend');
-
-  const { data: logs = [], isLoading } = useGetLogsQuery();
-
-  // Filter logs based on search query and filters
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch =
-      log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.service.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLevel = levelFilter === 'all' || log.level === levelFilter;
-    const matchesService =
-      serviceFilter === 'all' || log.service === serviceFilter;
-
-    return matchesSearch && matchesLevel && matchesService;
-  });
-
-  // Sort logs based on selected field and order
-  const sortedLogs = [...filteredLogs].sort((a, b) => {
-    if (sortField === 'timestamp') {
-      return sortOrder === 'ascend'
-        ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        : new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    }
-    if (sortField === 'level') {
-      return sortOrder === 'ascend'
-        ? a.level.localeCompare(b.level)
-        : b.level.localeCompare(a.level);
-    }
-    if (sortField === 'service') {
-      return sortOrder === 'ascend'
-        ? a.service.localeCompare(b.service)
-        : b.service.localeCompare(a.service);
-    }
-    return 0;
-  });
-
-  // Get unique services and levels for filter options
-  const services = Array.from(new Set(logs.map((log) => log.service)));
-  const levels = Array.from(new Set(logs.map((log) => log.level)));
-
-  // Sort menu items
-  const sortMenu = (
-    <Menu
-      items={[
-        {
-          key: 'timestamp',
-          label: 'Timestamp',
-          onClick: () => {
-            setSortField('timestamp');
-            setSortOrder(
-              sortField === 'timestamp' && sortOrder === 'ascend'
-                ? 'descend'
-                : 'ascend',
-            );
-          },
-        },
-        {
-          key: 'level',
-          label: 'Level',
-          onClick: () => {
-            setSortField('level');
-            setSortOrder(
-              sortField === 'level' && sortOrder === 'ascend'
-                ? 'descend'
-                : 'ascend',
-            );
-          },
-        },
-        {
-          key: 'service',
-          label: 'Service',
-          onClick: () => {
-            setSortField('service');
-            setSortOrder(
-              sortField === 'service' && sortOrder === 'ascend'
-                ? 'descend'
-                : 'ascend',
-            );
-          },
-        },
-      ]}
-    />
-  );
-
-  return (
-    <LayoutScroll>
-      <div className="flex items-center justify-between">
-        <PageTitle title="Logs" />
-        <div className="flex items-center space-x-2">
-          <ClockCircleOutlined className="text-gray-400" />
-          <Text type="secondary" style={{ fontSize: '14px' }}>
-            Last updated: {new Date().toLocaleTimeString()}
-          </Text>
-        </div>
-      </div>
-
-      <Tabs defaultActiveKey="all">
-        <TabPane tab="All Logs" key="all">
-          <LogFilters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            levelFilter={levelFilter}
-            setLevelFilter={setLevelFilter}
-            serviceFilter={serviceFilter}
-            setServiceFilter={setServiceFilter}
-            levels={levels}
-            services={services}
-          />
-
-          <Card
-            className="mt-4"
-            styles={{
-              body: {
-                padding: '24px',
-              },
-            }}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <Title level={4}>All Logs</Title>
-              <Space>
-                <Dropdown overlay={sortMenu} trigger={['click']}>
-                  <Button icon={<SortAscendingOutlined />}>
-                    Sort by {sortField} <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Space>
-            </div>
-            {isLoading ? (
-              <div className="flex justify-center p-8">
-                <Spin size="large" />
-              </div>
-            ) : (
-              <LogsTable data={sortedLogs} />
-            )}
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Errors" key="errors">
-          <Card
-            styles={{
-              body: {
-                padding: '24px',
-              },
-            }}
-          >
-            <Title level={4}>Error Logs</Title>
-            {isLoading ? (
-              <div className="flex justify-center p-8">
-                <Spin size="large" />
-              </div>
-            ) : (
-              <LogsTable data={logs.filter((log) => log.level === 'ERROR')} />
-            )}
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Warnings" key="warnings">
-          <Card
-            styles={{
-              body: {
-                padding: '24px',
-              },
-            }}
-          >
-            <Title level={4}>Warning Logs</Title>
-            {isLoading ? (
-              <div className="flex justify-center p-8">
-                <Spin size="large" />
-              </div>
-            ) : (
-              <LogsTable data={logs.filter((log) => log.level === 'WARN')} />
-            )}
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Info" key="info">
-          <Card
-            styles={{
-              body: {
-                padding: '24px',
-              },
-            }}
-          >
-            <Title level={4}>Info Logs</Title>
-            {isLoading ? (
-              <div className="flex justify-center p-8">
-                <Spin size="large" />
-              </div>
-            ) : (
-              <LogsTable data={logs.filter((log) => log.level === 'INFO')} />
-            )}
-          </Card>
-        </TabPane>
-      </Tabs>
-    </LayoutScroll>
-  );
-}

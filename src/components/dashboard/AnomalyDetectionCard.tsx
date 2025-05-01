@@ -3,7 +3,7 @@ import { Card, Typography, Space, Tag } from 'antd';
 import { memo, useMemo } from 'react';
 import { useGetLogsQuery } from '@/store/api/logsApi';
 import { ChartSkeleton } from '../common/Skeleton';
-import type { LogEntry } from '@/types/log';
+import type { LogEntry } from '@/types/logs';
 
 const { Text } = Typography;
 

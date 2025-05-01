@@ -10,13 +10,14 @@ import {
   Area,
 } from 'recharts';
 import { SettingOutlined } from '@ant-design/icons';
-import { TimeUnit } from '@/types/log';
+import { TimeUnit } from '@/types/logs';
 import { CHART_COLORS } from '../constants/color';
 import { setTimeAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
 import { useAppDispatch } from '@/lib/hooks/hook';
 import { useGetTimeAnalysisQuery } from '@/store/api/logsApi';
 import { ChartSkeleton } from '../common/Skeleton';
 import { useState } from 'react';
+import { NoDataStatus } from '../common/Status';
 
 export default function TimeSeriesCard() {
   const [timeUnit, setTimeUnit] = useState<TimeUnit>(TimeUnit.MINUTE);
@@ -30,6 +31,10 @@ export default function TimeSeriesCard() {
 
   if (isLoading) {
     return <ChartSkeleton title="Time Series Analysis" />;
+  }
+
+  if (!timeAnalysisData) {
+    return <NoDataStatus title="Time Series Analysis" />;
   }
 
   return (

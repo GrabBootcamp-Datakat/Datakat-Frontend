@@ -22,7 +22,7 @@ export default function EventFrequencyCard() {
   }
 
   if (!eventFrequency) {
-    return <NoDataStatus />;
+    return <NoDataStatus title="Event Frequency" />;
   }
 
   return (

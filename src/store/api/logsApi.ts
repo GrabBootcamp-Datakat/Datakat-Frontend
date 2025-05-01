@@ -1,16 +1,42 @@
+'use client';
 import {
   ComponentDataPoint,
   TimeDataPoint,
 } from '../slices/chartCustomizationSlice';
 import { appApi } from './appApi';
-import { LogEntry, LogCountDto, TimeUnit } from '@/types/log';
+import {
+  LogSearchResponse,
+  LogSearchRequest,
+  LogApplicationsRequest,
+  LogApplicationsResponse,
+} from '@/types/logs';
+import { LogCountDto, TimeUnit } from '@/types/logs';
 
 export const logsApi = appApi.injectEndpoints({
   endpoints: (builder) => ({
-    getLogs: builder.query<LogEntry[], void>({
-      query: () => ({
-        url: '/api/logs',
+    getLogs: builder.query<LogSearchResponse, LogSearchRequest>({
+      query: (params) => ({
+        url: '/api/v1/logs',
         method: 'GET',
+        params: {
+          ...params,
+          levels: params.levels?.join(','),
+          applications: params.applications?.join(','),
+        },
+      }),
+      providesTags: ['Logs'],
+    }),
+
+    getLogsApplications: builder.query<
+      LogApplicationsResponse,
+      LogApplicationsRequest
+    >({
+      query: (params) => ({
+        url: '/api/v1/logs/applications',
+        method: 'GET',
+        params: {
+          ...params,
+        },
       }),
       providesTags: ['Logs'],
     }),
@@ -87,6 +113,7 @@ export const logsApi = appApi.injectEndpoints({
 
 export const {
   useGetLogsQuery,
+  useGetLogsApplicationsQuery,
   useGetLogsCountQuery,
   useGetTimeAnalysisQuery,
   useGetTimeDistributionQuery,

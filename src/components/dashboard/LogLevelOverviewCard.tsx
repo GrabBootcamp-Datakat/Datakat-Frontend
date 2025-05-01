@@ -18,8 +18,8 @@ import {
 import { CHART_COLORS } from '../constants/color';
 import { useGetLogsCountQuery } from '@/store/api/logsApi';
 import { ChartSkeleton } from '../common/Skeleton';
-import { LogCountDto } from '@/types/log';
-
+import { LogCountDto } from '@/types/logs';
+import { NoDataStatus } from '../common/Status';
 const { Text, Title } = Typography;
 
 interface LogLevelCardProps {
@@ -167,8 +167,12 @@ const LogLevelCards = ({ logCount }: { logCount: LogCountDto }) => (
 export default function LogLevelOverviewCard() {
   const { data: logCount, isLoading } = useGetLogsCountQuery();
 
-  if (isLoading || !logCount) {
+  if (isLoading) {
     return <ChartSkeleton title="Log Level Overview" />;
+  }
+
+  if (!logCount) {
+    return <NoDataStatus title="Log Level Overview" />;
   }
 
   return (

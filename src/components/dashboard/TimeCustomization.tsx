@@ -3,7 +3,7 @@ import { Card, Space, Button, DatePicker, Typography } from 'antd';
 import { memo, useCallback } from 'react';
 import { useAppDispatch } from '@/lib/hooks/hook';
 import { setTimeAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
-import { TimeUnit } from '@/types/log';
+import { TimeUnit } from '@/types/logs';
 import { ChartSkeleton } from '../common/Skeleton';
 
 const { Text } = Typography;
