@@ -1,20 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Typography, Tabs, Space } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { MetricName, TimeInterval } from '@/types/metrics';
+import { useAppDispatch } from '@/lib/hooks/hook';
+import { appApi } from '@/store/api/appApi';
 import MetricsFilters from '@/components/metrics/MetricsFilters';
 import MetricsStats from '@/components/metrics/MetricsStats';
 import MetricsChart from '@/components/metrics/MetricsChart';
 import LayoutScroll from '@/components/common/LayoutScroll';
 import PageTitle from '@/components/common/PageTitle';
 import dayjs from 'dayjs';
-
 const { Text } = Typography;
 
 export default function MetricsPage() {
+  const dispatch = useAppDispatch();
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
-    dayjs().subtract(10, 'year'),
+    dayjs().subtract(25, 'year'),
     dayjs(),
   ]);
   const [selectedApplications, setSelectedApplications] = useState<string[]>(
@@ -26,6 +28,18 @@ export default function MetricsPage() {
   const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
     TimeInterval.ONE_MINUTE,
   );
+
+  useEffect(() => {
+    dispatch(appApi.util.invalidateTags(['Metrics']));
+  }, [dispatch, selectedApplications, selectedMetric, selectedInterval]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      dispatch(appApi.util.invalidateTags(['Metrics']));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [dispatch]);
+
   const currentTime = new Date().toLocaleTimeString();
 
   const tabItems = [

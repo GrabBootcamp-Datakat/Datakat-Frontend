@@ -3,6 +3,7 @@ export enum LogLevel {
   WARN = 'WARN',
   ERROR = 'ERROR',
   DEBUG = 'DEBUG',
+  UNKNOWN = 'UNKNOWN',
 }
 
 export enum TimeUnit {

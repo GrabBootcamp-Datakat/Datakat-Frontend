@@ -46,7 +46,7 @@ export default function LogsPage() {
     searchQuery: '',
     levelFilter: [],
     serviceFilter: [],
-    dateRange: [dayjs().subtract(25, 'year'), dayjs()],
+    dateRange: [dayjs().subtract(9, 'year'), dayjs()],
   });
 
   const [pagination, setPagination] = useState<PaginationState>({
@@ -59,6 +59,8 @@ export default function LogsPage() {
     sortOrder: SortOrder.DESC,
   });
 
+  const [activeTab, setActiveTab] = useState('all');
+
   // Debounce search query
   const debouncedSearchQuery = useDebounce(filters.searchQuery, 500);
 
@@ -68,7 +70,10 @@ export default function LogsPage() {
       startTime: filters.dateRange[0].toISOString(),
       endTime: filters.dateRange[1].toISOString(),
       query: debouncedSearchQuery,
-      levels: filters.levelFilter,
+      levels:
+        activeTab === 'all'
+          ? filters.levelFilter
+          : [activeTab.toUpperCase() as LogLevel],
       applications: filters.serviceFilter,
       sortBy: sort.sortField,
       sortOrder: sort.sortOrder,
@@ -84,11 +89,12 @@ export default function LogsPage() {
       sort.sortOrder,
       pagination.currentPage,
       pagination.pageSize,
+      activeTab,
     ],
   );
 
   // API queries
-  const { data, isLoading } = useGetLogsQuery(queryParams);
+  const { data, isLoading, refetch } = useGetLogsQuery(queryParams);
   const { data: applicationsData } = useGetLogsApplicationsQuery({
     startTime: filters.dateRange[0].toISOString(),
     endTime: filters.dateRange[1].toISOString(),
@@ -103,6 +109,11 @@ export default function LogsPage() {
     filters.serviceFilter,
     filters.dateRange,
   ]);
+
+  // Refetch when query parameters change
+  useEffect(() => {
+    refetch();
+  }, [queryParams, refetch]);
 
   // Memoize handlers
   const handleSearchChange = useCallback((value: string) => {
@@ -227,35 +238,72 @@ export default function LogsPage() {
         key: 'errors',
         label: 'Errors',
         children: (
-          <LogsCard
-            title="Errors"
-            isLoading={isLoading}
-            data={
-              data?.logs.filter((log) => log.level === LogLevel.ERROR) || []
-            }
-          />
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <LogFilters
+              searchQuery={filters.searchQuery}
+              setSearchQuery={handleSearchChange}
+              levelFilter={[LogLevel.ERROR]}
+              setLevelFilter={handleLevelFilterChange}
+              serviceFilter={filters.serviceFilter}
+              setServiceFilter={handleServiceFilterChange}
+              dateRange={filters.dateRange}
+              setDateRange={handleDateRangeChange}
+              services={applicationsData?.applications || []}
+            />
+            <LogsCard
+              title="Errors"
+              isLoading={isLoading}
+              data={data?.logs || []}
+            />
+          </Space>
         ),
       },
       {
         key: 'warnings',
         label: 'Warnings',
         children: (
-          <LogsCard
-            title="Warnings"
-            isLoading={isLoading}
-            data={data?.logs.filter((log) => log.level === LogLevel.WARN) || []}
-          />
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <LogFilters
+              searchQuery={filters.searchQuery}
+              setSearchQuery={handleSearchChange}
+              levelFilter={[LogLevel.WARN]}
+              setLevelFilter={handleLevelFilterChange}
+              serviceFilter={filters.serviceFilter}
+              setServiceFilter={handleServiceFilterChange}
+              dateRange={filters.dateRange}
+              setDateRange={handleDateRangeChange}
+              services={applicationsData?.applications || []}
+            />
+            <LogsCard
+              title="Warnings"
+              isLoading={isLoading}
+              data={data?.logs || []}
+            />
+          </Space>
         ),
       },
       {
         key: 'info',
         label: 'Info',
         children: (
-          <LogsCard
-            title="Info Logs"
-            isLoading={isLoading}
-            data={data?.logs.filter((log) => log.level === LogLevel.INFO) || []}
-          />
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <LogFilters
+              searchQuery={filters.searchQuery}
+              setSearchQuery={handleSearchChange}
+              levelFilter={[LogLevel.INFO]}
+              setLevelFilter={handleLevelFilterChange}
+              serviceFilter={filters.serviceFilter}
+              setServiceFilter={handleServiceFilterChange}
+              dateRange={filters.dateRange}
+              setDateRange={handleDateRangeChange}
+              services={applicationsData?.applications || []}
+            />
+            <LogsCard
+              title="Info Logs"
+              isLoading={isLoading}
+              data={data?.logs || []}
+            />
+          </Space>
         ),
       },
     ],
@@ -288,7 +336,11 @@ export default function LogsPage() {
         </div>
       </div>
 
-      <Tabs defaultActiveKey="all" items={tabItems} />
+      <Tabs
+        defaultActiveKey="all"
+        items={tabItems}
+        onChange={(key) => setActiveTab(key)}
+      />
     </LayoutScroll>
   );
 }
@@ -337,6 +389,7 @@ const LogLevelBadge = ({ level }: { level: LogLevel }) => {
     WARN: 'orange',
     INFO: 'blue',
     DEBUG: 'gray',
+    UNKNOWN: 'gray',
   };
 
   return (
@@ -378,7 +431,7 @@ const LogFilters = ({
   serviceFilter: string[];
   setServiceFilter: (value: string[]) => void;
   dateRange: [dayjs.Dayjs, dayjs.Dayjs];
-  setDateRange: (value: [dayjs.Dayjs, dayjs.Dayjs]) => void;
+  setDateRange: (dates: [dayjs.Dayjs, dayjs.Dayjs] | null) => void;
   services: string[];
 }) => (
   <Card>
@@ -426,11 +479,18 @@ const LogFilters = ({
           </Select>
           <RangePicker
             value={dateRange}
-            onChange={(dates) =>
-              dates && setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])
-            }
+            onChange={(dates) => {
+              if (dates) {
+                setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs]);
+              }
+            }}
             showTime
             format="YYYY-MM-DD HH:mm:ss"
+            onOk={(dates) => {
+              if (dates) {
+                setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs]);
+              }
+            }}
           />
         </Space>
       </Space>
