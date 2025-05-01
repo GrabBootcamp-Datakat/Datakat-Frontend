@@ -1,13 +1,15 @@
-"use client";
+'use client';
 
-import { ConfigProvider, App } from "antd";
-import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { ConfigProvider, App } from 'antd';
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 
 export const theme = {
-  //   token: {
-  //     colorPrimary: "#4d2c5e",
-  //     colorBgContainerDisabled: "#d4d4d8",
-  //   },
+  components: {
+    Card: {
+      bodyPadding: 12,
+      headerPadding: 12,
+    },
+  },
 };
 
 export default function ThemeProvider({
