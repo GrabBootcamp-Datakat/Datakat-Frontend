@@ -10,7 +10,7 @@ import { useState, useRef, useEffect } from 'react';
 import PageTitle from '@/components/common/PageTitle';
 import { Line, Bar, Pie } from '@ant-design/plots';
 import { useSendChatMessageMutation } from '@/store/api/chatApi';
-import { Message, ChartData } from '@/types/chat';
+import { Message, ChartData, NLVResponse, ChartType } from '@/types/chat';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -20,11 +20,8 @@ const { Text } = Typography;
  * @constant
  */
 const exampleQueries = [
-  'Show me CPU usage for all servers over the last 24 hours',
-  'Which services had the most errors yesterday?',
-  'Compare network traffic between app-server-01 and app-server-02',
-  "What's causing the high memory usage on db-server-01?",
-  'Show me the correlation between response time and user traffic',
+  'Which components logged the most events from 01/01/2017 to 01/01/2018.',
+  'Show me the count of errors per application from 01/01/2017 to 01/01/2018 as a bar chart',
 ];
 
 /**
@@ -59,8 +56,10 @@ const ChatMessage = ({ message }: { message: Message }) => {
   const isUser = message.sender === 'user';
 
   return (
-    <div className={`!flex ${isUser ? '!justify-end' : '!justify-start'}`}>
-      <div className="!flex !max-w-3xl !items-start !gap-3">
+    <div
+      className={`!flex w-full ${isUser ? '!justify-end' : '!justify-start'}`}
+    >
+      <div className="!flex !max-w-4xl !grow !items-start !gap-3">
         {!isUser && (
           <Avatar
             icon={<ThunderboltOutlined className="!text-blue-600" />}
@@ -68,13 +67,14 @@ const ChatMessage = ({ message }: { message: Message }) => {
           />
         )}
         <Card
-          size="small"
           style={{
             background: isUser ? '#1890ff' : '#f5f5f5',
             borderRadius: '12px',
+            width: '100%',
+            minWidth: '600px',
           }}
         >
-          <Space direction="vertical" size={4}>
+          <Space direction="vertical" size={4} style={{ width: '100%' }}>
             <Text
               style={{
                 color: isUser ? '#fff' : 'inherit',
@@ -85,12 +85,29 @@ const ChatMessage = ({ message }: { message: Message }) => {
             >
               {message.content}
             </Text>
-            {message.data && (
-              <div className="mt-4">
-                <Text strong>{message.data.title}</Text>
-                <div className="mt-2" style={{ height: '300px' }}>
+            {!isUser && message.data && (
+              <div className="mt-4 w-full">
+                <div className="mb-2">
+                  <Text strong>{message.data.title}</Text>
+                </div>
+                <div
+                  className="w-full"
+                  style={{ height: '300px', minWidth: '500px' }}
+                >
                   <ChartVisualization data={message.data} />
                 </div>
+                {message.nlvResponse?.interpretedQuery && (
+                  <div className="mb-2 text-sm text-gray-500">
+                    Time Range:{' '}
+                    {new Date(
+                      message.nlvResponse.interpretedQuery.time_range.start,
+                    ).toLocaleString()}{' '}
+                    -{' '}
+                    {new Date(
+                      message.nlvResponse.interpretedQuery.time_range.end,
+                    ).toLocaleString()}
+                  </div>
+                )}
               </div>
             )}
             <Text
@@ -194,6 +211,140 @@ const ChatInput = ({
   </Space.Compact>
 );
 
+const convertNLVResponseToChartData = (
+  nlvResponse: NLVResponse,
+): ChartData | undefined => {
+  if (!nlvResponse.data || !nlvResponse.columns) return undefined;
+  const type = nlvResponse.interpretedQuery?.visualization_hint as ChartType;
+
+  // For timeseries data
+  if (nlvResponse.resultType === 'timeseries') {
+    const timeIndex = nlvResponse.columns.indexOf('timestamp');
+    const valueIndex = nlvResponse.columns.indexOf('value');
+    const componentIndex = nlvResponse.columns.indexOf('component');
+
+    // If we have component data, aggregate it into a bar chart
+    if (componentIndex !== -1) {
+      // Aggregate values by component
+      const componentTotals = nlvResponse.data.reduce(
+        (acc: Record<string, number>, row: unknown[]) => {
+          const component = row[componentIndex] as string;
+          const value = row[valueIndex] as number;
+          acc[component] = (acc[component] || 0) + value;
+          return acc;
+        },
+        {},
+      );
+
+      // Sort components by total count
+      const sortedComponents = Object.entries(componentTotals)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10); // Show top 10 components
+
+      return {
+        type: type,
+        title: nlvResponse.originalQuery,
+        data: sortedComponents.map(([component, count]) => ({
+          component,
+          count,
+        })),
+        config: {
+          xField: 'component',
+          yField: 'count',
+          label: {
+            position: 'top',
+            style: {
+              fontSize: 12,
+            },
+          },
+          meta: {
+            count: {
+              alias: 'Number of Events',
+            },
+            component: {
+              alias: 'Component',
+            },
+          },
+        },
+      };
+    }
+
+    // For regular timeseries data
+    if (timeIndex !== -1 && valueIndex !== -1) {
+      const groupByIndex = nlvResponse.columns.findIndex(
+        (col: string) => col !== 'timestamp' && col !== 'value',
+      );
+
+      return {
+        type: type,
+        title: nlvResponse.originalQuery,
+        data: nlvResponse.data.map((row: unknown[]) => ({
+          time: new Date(row[timeIndex] as number).toLocaleTimeString(),
+          value: row[valueIndex] as number,
+          ...(groupByIndex !== -1 && {
+            [nlvResponse.columns![groupByIndex]]: row[groupByIndex],
+          }),
+        })),
+        config: {
+          xField: 'time',
+          yField: 'value',
+          ...(groupByIndex !== -1 && {
+            seriesField: nlvResponse.columns![groupByIndex],
+          }),
+          smooth: true,
+        },
+      };
+    }
+  }
+
+  // For log list data
+  if (nlvResponse.resultType === 'log_list') {
+    const levelIndex = nlvResponse.columns.indexOf('level');
+    if (levelIndex === -1) return undefined;
+
+    const levelCounts = nlvResponse.data.reduce(
+      (acc: Record<string, number>, row: unknown[]) => {
+        const level = row[levelIndex] as string;
+        acc[level] = (acc[level] || 0) + 1;
+        return acc;
+      },
+      {},
+    );
+
+    return {
+      type: type,
+      title: 'Log Level Distribution',
+      data: Object.entries(levelCounts).map(([level, count]) => ({
+        level,
+        count: count as number,
+      })),
+      config: {
+        angleField: 'count',
+        colorField: 'level',
+      },
+    };
+  }
+
+  // For other data types, create a bar chart
+  if (!nlvResponse.columns || nlvResponse.columns.length < 2) return undefined;
+
+  return {
+    type: type,
+    title: nlvResponse.originalQuery,
+    data: nlvResponse.data.map((row: unknown[]) => {
+      const obj: Record<string, unknown> = {};
+      nlvResponse.columns?.forEach((col: string, i: number) => {
+        obj[col] = row[i];
+      });
+      return obj;
+    }),
+    config: {
+      xField: nlvResponse.columns[0],
+      yField: nlvResponse.columns[1],
+    },
+  };
+};
+
 /**
  * Main chat page component
  * @component
@@ -235,12 +386,17 @@ export default function ChatPage() {
 
     try {
       const response = await sendChatMessage(inputValue).unwrap();
+      const chartData = convertNLVResponseToChartData(response);
+
       const botResponse: Message = {
         id: messages.length + 2,
-        content: response.content,
+        content:
+          response.errorMessage ||
+          `Here's the analysis for: "${response.originalQuery}"`,
         sender: 'bot',
         timestamp: new Date().toLocaleTimeString(),
-        data: response.data,
+        data: chartData,
+        nlvResponse: response,
       };
       setMessages((prev) => [...prev, botResponse]);
     } catch (error) {
