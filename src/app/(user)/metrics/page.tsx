@@ -16,9 +16,12 @@ const { Text } = Typography;
 export default function MetricsPage() {
   const dispatch = useAppDispatch();
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
-    dayjs().subtract(25, 'year'),
+    dayjs().subtract(15, 'year'),
     dayjs(),
   ]);
+  const [currentTime, setCurrentTime] = useState<string>(
+    new Date().toLocaleTimeString(),
+  );
   const [selectedApplications, setSelectedApplications] = useState<string[]>(
     [],
   );
@@ -31,16 +34,16 @@ export default function MetricsPage() {
 
   useEffect(() => {
     dispatch(appApi.util.invalidateTags(['Metrics']));
+    setCurrentTime(new Date().toLocaleTimeString());
   }, [dispatch, selectedApplications, selectedMetric, selectedInterval]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       dispatch(appApi.util.invalidateTags(['Metrics']));
+      setCurrentTime(new Date().toLocaleTimeString());
     }, 3000);
     return () => clearInterval(interval);
   }, [dispatch]);
-
-  const currentTime = new Date().toLocaleTimeString();
 
   const tabItems = [
     {
