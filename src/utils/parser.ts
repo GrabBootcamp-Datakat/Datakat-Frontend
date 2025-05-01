@@ -1,4 +1,4 @@
-import { Log, LogLevel, LogStats } from '../types/log';
+import { Log, LogLevel, LogStats } from '../types/logs';
 
 export function parseLogsFromCsv(csvString: string): Log[] {
   const lines = csvString.split('\n').filter((line) => line.trim());
