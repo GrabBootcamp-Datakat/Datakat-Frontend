@@ -11,4 +11,22 @@ export const CHART_COLORS = {
   border: '#d9d9d9',
 } as const;
 
-export const COLORS = ['#52c41a', '#faad14', '#f5222d', '#1890ff', '#722ed1'];
+export const PRIMARY_COLORS = '#1677ff';
+
+export const COLORS = [
+  '#52c41a',
+  '#faad14',
+  '#f5222d',
+  '#1890ff',
+  '#722ed1',
+  '#5B8FF9', // blue
+  '#5AD8A6', // green
+  '#5D7092', // gray-blue
+  '#F6BD16', // yellow
+  '#E8684A', // red-orange
+  '#6DC8EC', // light blue
+  '#9270CA', // purple
+  '#FF9D4D', // orange
+  '#269A99', // teal
+  '#FF99C3', // pink
+];

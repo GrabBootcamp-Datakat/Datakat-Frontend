@@ -1,13 +1,20 @@
 'use client';
-import { Card, Typography } from 'antd';
-import { Line } from '@ant-design/plots';
+import { Card } from 'antd';
+import {
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from 'recharts';
 import { useGetTimeseriesMetricsQuery } from '@/store/api/metricsApi';
 import { MetricName, TimeInterval } from '@/types/metrics';
-import dayjs from 'dayjs';
 import { ChartSkeleton } from '@/components/common/Skeleton';
-
-const { Title } = Typography;
-
+import { PRIMARY_COLORS } from '@/components/constants/color';
+import Title from 'antd/es/typography/Title';
+import dayjs from 'dayjs';
 interface MetricsChartProps {
   dateRange: [dayjs.Dayjs, dayjs.Dayjs];
   selectedApplications: string[];
@@ -44,44 +51,27 @@ export default function MetricsChart({
   return (
     <Card>
       <Title level={4}>Metrics Over Time</Title>
-      <Line
-        data={chartData}
-        xField="time"
-        yField="value"
-        seriesField="name"
-        xAxis={{
-          type: 'time',
-          tickCount: 5,
-          label: {
-            formatter: (text: number) =>
-              dayjs(text).format('YYYY-MM-DD HH:mm:ss'),
-          },
-        }}
-        yAxis={{
-          label: {
-            formatter: (v: number) => `${v}`,
-          },
-        }}
-        point={{
-          size: 2,
-          shape: 'circle',
-        }}
-        state={{
-          active: {
-            style: {
-              shadowBlur: 4,
-              stroke: '#000',
-              fill: 'red',
-            },
-          },
-        }}
-        interactions={[
-          {
-            type: 'marker-active',
-          },
-        ]}
-        height={400}
-      />
+      <ResponsiveContainer width="100%" height={300}>
+        <AreaChart data={chartData}>
+          <defs>
+            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={PRIMARY_COLORS} stopOpacity={0.8} />
+              <stop offset="95%" stopColor={PRIMARY_COLORS} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke={PRIMARY_COLORS}
+            fillOpacity={1}
+            fill="url(#colorCount)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </Card>
   );
 }

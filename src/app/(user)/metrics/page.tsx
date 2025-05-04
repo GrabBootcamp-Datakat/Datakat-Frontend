@@ -1,17 +1,18 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Typography, Tabs, Space } from 'antd';
+import { Tabs, Space } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { MetricName, TimeInterval } from '@/types/metrics';
 import { useAppDispatch } from '@/lib/hooks/hook';
 import { appApi } from '@/store/api/appApi';
-import MetricsFilters from '@/components/metrics/MetricsFilters';
-import MetricsStats from '@/components/metrics/MetricsStats';
-import MetricsChart from '@/components/metrics/MetricsChart';
-import LayoutScroll from '@/components/common/LayoutScroll';
-import PageTitle from '@/components/common/PageTitle';
+import {
+  MetricsFilters,
+  MetricsStats,
+  MetricsChart,
+} from '@/components/metrics';
+import { LayoutScroll, PageTitle } from '@/components/common';
+import Text from 'antd/es/typography/Title';
 import dayjs from 'dayjs';
-const { Text } = Typography;
 
 export default function MetricsPage() {
   const dispatch = useAppDispatch();
@@ -29,7 +30,7 @@ export default function MetricsPage() {
     MetricName.LOG_EVENT,
   );
   const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
-    TimeInterval.ONE_MINUTE,
+    TimeInterval.TEN_MINUTES,
   );
 
   useEffect(() => {
