@@ -26,6 +26,11 @@ export interface MetricSummaryRequest {
   applications?: string[];
 }
 
+export interface MetricSummaryResponse {
+  totalLogEvents: number;
+  totalErrorEvents: number;
+}
+
 export interface MetricTimeseriesRequest {
   startTime: string;
   endTime: string;
@@ -33,11 +38,6 @@ export interface MetricTimeseriesRequest {
   metricName: MetricName;
   interval: TimeInterval;
   groupBy?: GroupBy;
-}
-
-export interface MetricSummaryResponse {
-  totalLogEvents: number;
-  totalErrorEvents: number;
 }
 
 export interface MetricTimeseriesResponse {

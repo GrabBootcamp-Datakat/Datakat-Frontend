@@ -1,10 +1,10 @@
 'use client';
 import { appApi } from './appApi';
-import { NLVQueryResponse } from '@/types/chat';
+import { NLVQueryResponse } from '@/types/query';
 
-export const chatApi = appApi.injectEndpoints({
+export const queryApi = appApi.injectEndpoints({
   endpoints: (builder) => ({
-    sendChatMessage: builder.mutation<NLVQueryResponse, string>({
+    sendQueryMessage: builder.mutation<NLVQueryResponse, string>({
       query: (message) => ({
         url: '/api/v1/nlv/query',
         method: 'POST',
@@ -14,4 +14,4 @@ export const chatApi = appApi.injectEndpoints({
   }),
 });
 
-export const { useSendChatMessageMutation } = chatApi;
+export const { useSendQueryMessageMutation } = queryApi;

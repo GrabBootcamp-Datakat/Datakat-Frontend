@@ -22,6 +22,7 @@ import { appApi } from '@/store/api/appApi';
 import chartCustomizationReducer, {
   ChartCustomizationState,
 } from '@/store/slices/chartCustomizationSlice';
+import queryReducer, { QueryState } from '@/store/slices/querySlice';
 
 const createNoopStorage = () => {
   return {
@@ -45,18 +46,20 @@ const storage =
 export type RootState = {
   [appApi.reducerPath]: ReturnType<typeof appApi.reducer>;
   chartCustomization: ChartCustomizationState;
+  query: QueryState;
 };
 
 const persistConfig = {
   key: 'root',
   storage,
   stateReconciler: autoMergeLevel2,
-  whitelist: ['chartCustomization'],
+  whitelist: ['chartCustomization', 'query'],
 };
 
 const appReducer = combineReducers({
   [appApi.reducerPath]: appApi.reducer,
   chartCustomization: chartCustomizationReducer,
+  query: queryReducer,
 });
 
 const rootReducer: Reducer<RootState, Action> = (state, action) => {
