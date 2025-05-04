@@ -1,13 +1,14 @@
 'use client';
+import { useMemo } from 'react';
 import { Card, Select, Space, DatePicker } from 'antd';
 import { MetricName, TimeInterval } from '@/types/metrics';
-import dayjs from 'dayjs';
 import { useGetApplicationsQuery } from '@/store/api/metricsApi';
+import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
 
 interface MetricsFiltersProps {
-  dateRange: [dayjs.Dayjs, dayjs.Dayjs];
+  dateRange: [string, string];
   setDateRange: (dates: [dayjs.Dayjs, dayjs.Dayjs]) => void;
   selectedApplications: string[];
   setSelectedApplications: (apps: string[]) => void;
@@ -29,16 +30,23 @@ export default function MetricsFilters({
 }: MetricsFiltersProps) {
   const { data: applicationsData, isLoading: isApplicationsLoading } =
     useGetApplicationsQuery({
-      startTime: dateRange[0].toISOString(),
-      endTime: dateRange[1].toISOString(),
+      startTime: dateRange[0],
+      endTime: dateRange[1],
     });
+
+  // Convert ISO strings to dayjs objects for the DatePicker
+  const dateRangeValue = useMemo(
+    () =>
+      [dayjs(dateRange[0]), dayjs(dateRange[1])] as [dayjs.Dayjs, dayjs.Dayjs],
+    [dateRange],
+  );
 
   return (
     <Card>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         <Space wrap>
           <RangePicker
-            value={dateRange}
+            value={dateRangeValue}
             onChange={(dates) =>
               dates && setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])
             }

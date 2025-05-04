@@ -4,7 +4,7 @@ import { useGetSummaryMetricsQuery } from '@/store/api/metricsApi';
 import dayjs from 'dayjs';
 
 interface MetricsStatsProps {
-  dateRange: [dayjs.Dayjs, dayjs.Dayjs];
+  dateRange: [string, string];
   selectedApplications: string[];
 }
 
@@ -13,8 +13,8 @@ export default function MetricsStats({
   selectedApplications,
 }: MetricsStatsProps) {
   const { data: summaryData, isLoading } = useGetSummaryMetricsQuery({
-    startTime: dateRange[0].toISOString(),
-    endTime: dateRange[1].toISOString(),
+    startTime: dateRange[0],
+    endTime: dateRange[1],
     applications: selectedApplications,
   });
 
@@ -26,7 +26,7 @@ export default function MetricsStats({
       : 0;
 
   // Calculate hours between start and end time
-  const hoursDiff = dateRange[1].diff(dateRange[0], 'hour');
+  const hoursDiff = dayjs(dateRange[1]).diff(dayjs(dateRange[0]), 'hour');
   const avgLogsPerHour =
     totalLogEvents > 0 && hoursDiff > 0
       ? (totalLogEvents / hoursDiff).toFixed(0)

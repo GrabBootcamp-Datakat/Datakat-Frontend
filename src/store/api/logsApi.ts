@@ -10,7 +10,7 @@ import {
   LogApplicationsRequest,
   LogApplicationsResponse,
 } from '@/types/logs';
-import { LogCountDto, TimeUnit } from '@/types/logs';
+import { TimeUnit } from '@/types/logs';
 
 export const logsApi = appApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -37,14 +37,6 @@ export const logsApi = appApi.injectEndpoints({
         params: {
           ...params,
         },
-      }),
-      providesTags: ['Logs'],
-    }),
-
-    getLogsCount: builder.query<LogCountDto, void>({
-      query: () => ({
-        url: '/api/logs/count',
-        method: 'GET',
       }),
       providesTags: ['Logs'],
     }),
@@ -114,7 +106,6 @@ export const logsApi = appApi.injectEndpoints({
 export const {
   useGetLogsQuery,
   useGetLogsApplicationsQuery,
-  useGetLogsCountQuery,
   useGetTimeAnalysisQuery,
   useGetTimeDistributionQuery,
   useGetComponentQuery,

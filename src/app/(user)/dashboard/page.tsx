@@ -1,14 +1,43 @@
+'use client';
+import { useEffect } from 'react';
 import { Col, Row } from 'antd';
-import LayoutScroll from '@/components/common/LayoutScroll';
-import PageTitle from '@/components/common/PageTitle';
-import LogLevelOverviewCard from '@/components/dashboard/LogLevelOverviewCard';
-import AnomalyDetectionCard from '@/components/dashboard/AnomalyDetectionCard';
-import TimeSeriesCard from '@/components/dashboard/TimeSeriesCard';
-import TimeDistributionCard from '@/components/dashboard/TimeDistributionCard';
-import ComponentDistributionCard from '@/components/dashboard/ComponentDistributionCard';
-import EventFrequencyCard from '@/components/dashboard/EventFrequencyCard';
+import { LayoutScroll, PageTitle } from '@/components/common';
+import {
+  LogLevelOverviewCard,
+  AnomalyDetectionCard,
+  TimeSeriesCard,
+  TimeDistributionCard,
+  ComponentDistributionCard,
+  ApplicationFrequencyCard,
+} from '@/components/dashboard';
+import { useGetLogsQuery } from '@/store/api/logsApi';
+import { setIsLoading, setLogs } from '@/store/slices/dashboardSlice';
+import { selectDateRange } from '@/store/slices/dashboardSlice';
+import { useAppSelector, useAppDispatch } from '@/hooks/hook';
+import { SortBy, SortOrder } from '@/types/logs';
 
 export default function DashboardPage() {
+  const dispatch = useAppDispatch();
+  const dateRange = useAppSelector(selectDateRange);
+  const { data, isLoading } = useGetLogsQuery({
+    startTime: dateRange[0],
+    endTime: dateRange[1],
+    page: 1,
+    size: 1000,
+    sortBy: SortBy.TIMESTAMP,
+    sortOrder: SortOrder.ASC,
+  });
+
+  useEffect(() => {
+    dispatch(setIsLoading(isLoading));
+  }, [dispatch, isLoading]);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setLogs(data.logs));
+    }
+  }, [dispatch, data]);
+
   return (
     <LayoutScroll>
       <PageTitle title="Log Analytics Dashboard" />
@@ -35,7 +64,7 @@ export default function DashboardPage() {
           <TimeDistributionCard />
         </Col>
         <Col span={10}>
-          <EventFrequencyCard />
+          <ApplicationFrequencyCard />
         </Col>
       </Row>
     </LayoutScroll>

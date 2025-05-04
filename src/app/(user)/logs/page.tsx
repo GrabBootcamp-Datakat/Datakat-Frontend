@@ -6,7 +6,7 @@ import { LayoutScroll, PageTitle } from '@/components/common';
 import LogsTable from '@/components/logs/LogsTable';
 import { TableSkeleton } from '@/components/common/Skeleton';
 import LogFilters from '@/components/logs/LogFilters';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks/hook';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import { setPagination, setSort } from '@/store/slices/logsSlice';
 import { RootState } from '@/store/store';
 import dayjs from 'dayjs';

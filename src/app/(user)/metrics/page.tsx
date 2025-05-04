@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Tabs, Space } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { MetricName, TimeInterval } from '@/types/metrics';
-import { useAppDispatch } from '@/lib/hooks/hook';
+import { useAppDispatch } from '@/hooks/hook';
 import { appApi } from '@/store/api/appApi';
 import {
   MetricsFilters,
@@ -33,6 +33,12 @@ export default function MetricsPage() {
     TimeInterval.TEN_MINUTES,
   );
 
+  // Convert Day.js date range to ISO strings for components
+  const dateRangeISO: [string, string] = [
+    dateRange[0].toISOString(),
+    dateRange[1].toISOString(),
+  ];
+
   useEffect(() => {
     dispatch(appApi.util.invalidateTags(['Metrics']));
     setCurrentTime(new Date().toLocaleTimeString());
@@ -53,7 +59,7 @@ export default function MetricsPage() {
       children: (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <MetricsFilters
-            dateRange={dateRange}
+            dateRange={dateRangeISO}
             setDateRange={setDateRange}
             selectedApplications={selectedApplications}
             setSelectedApplications={setSelectedApplications}
@@ -64,12 +70,12 @@ export default function MetricsPage() {
           />
 
           <MetricsStats
-            dateRange={dateRange}
+            dateRange={dateRangeISO}
             selectedApplications={selectedApplications}
           />
 
           <MetricsChart
-            dateRange={dateRange}
+            dateRange={dateRangeISO}
             selectedApplications={selectedApplications}
             selectedMetric={selectedMetric}
             selectedInterval={selectedInterval}

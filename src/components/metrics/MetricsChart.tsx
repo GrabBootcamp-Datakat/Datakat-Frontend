@@ -16,7 +16,7 @@ import { PRIMARY_COLORS } from '@/components/constants/color';
 import Title from 'antd/es/typography/Title';
 import dayjs from 'dayjs';
 interface MetricsChartProps {
-  dateRange: [dayjs.Dayjs, dayjs.Dayjs];
+  dateRange: [string, string];
   selectedApplications: string[];
   selectedMetric: MetricName;
   selectedInterval: TimeInterval;
@@ -28,15 +28,16 @@ export default function MetricsChart({
   selectedMetric,
   selectedInterval,
 }: MetricsChartProps) {
-  const { data: timeseriesData, isLoading } = useGetTimeseriesMetricsQuery({
-    startTime: dateRange[0].toISOString(),
-    endTime: dateRange[1].toISOString(),
-    applications: selectedApplications,
-    metricName: selectedMetric,
-    interval: selectedInterval,
-  });
+  const { data: timeseriesData, isLoading: isLoadingTimeseries } =
+    useGetTimeseriesMetricsQuery({
+      startTime: dateRange[0],
+      endTime: dateRange[1],
+      applications: selectedApplications,
+      metricName: selectedMetric,
+      interval: selectedInterval,
+    });
 
-  if (isLoading) {
+  if (isLoadingTimeseries) {
     return <ChartSkeleton title="Metrics Over Time" />;
   }
 

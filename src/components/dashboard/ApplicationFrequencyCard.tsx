@@ -14,51 +14,51 @@ import { CHART_COLORS } from '../constants/color';
 import { setTimeAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
+  selectApplicationFrequencyData,
   selectIsLoading,
-  selectTimeDistributionData,
 } from '@/store/slices/dashboardSlice';
 import { NoDataStatus, ChartSkeleton } from '../common';
 
-export default function TimeDistributionCard() {
+export default function ApplicationFrequencyCard() {
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectIsLoading);
-  const timeDistributionData = useAppSelector(selectTimeDistributionData);
+  const applicationFrequencyData = useAppSelector(
+    selectApplicationFrequencyData,
+  );
 
-  const handleCustomizeTimeDistribution = () => {
+  const handleCustomizeApplicationFrequency = () => {
     dispatch(setTimeAnalysisCustomization({ isCustomizing: true }));
   };
 
   if (isLoading) {
-    return <ChartSkeleton title="Time Distribution" />;
+    return <ChartSkeleton title="Application Frequency" />;
   }
 
-  if (!timeDistributionData) {
-    return <NoDataStatus title="Time Distribution" />;
+  if (!applicationFrequencyData) {
+    return <NoDataStatus title="Application Frequency" />;
   }
 
   return (
     <Card
-      title="Time Distribution"
+      title="Application Frequency"
       hoverable
       extra={
         <Button
           type="text"
           icon={<SettingOutlined />}
-          onClick={handleCustomizeTimeDistribution}
+          onClick={handleCustomizeApplicationFrequency}
         >
           Customize
         </Button>
       }
     >
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={timeDistributionData}>
-          <XAxis dataKey="hour" />
+        <BarChart data={applicationFrequencyData}>
+          <XAxis dataKey="application" />
           <YAxis />
           <Tooltip />
           <Legend />
-          <Bar dataKey="ERROR" stackId="a" fill={CHART_COLORS.error} />
-          <Bar dataKey="WARN" stackId="a" fill={CHART_COLORS.warn} />
-          <Bar dataKey="INFO" stackId="a" fill={CHART_COLORS.info} />
+          <Bar dataKey="count" fill={CHART_COLORS.total} />
         </BarChart>
       </ResponsiveContainer>
     </Card>

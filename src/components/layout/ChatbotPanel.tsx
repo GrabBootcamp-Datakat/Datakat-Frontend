@@ -1,7 +1,7 @@
 'use client';
 
 import { Layout, Input, Button, Typography, Avatar, Space, Card } from 'antd';
-import { useToggle } from '@/lib/hooks/useToggle';
+import { useToggle } from '@/hooks/useToggle';
 import {
   MessageOutlined,
   SendOutlined,

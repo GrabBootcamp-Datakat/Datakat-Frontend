@@ -8,7 +8,7 @@ import {
   Legend,
   CartesianGrid,
 } from 'recharts';
-import { CHART_COLORS } from '../constants/color';
+import { CHART_COLORS } from '../../constants/color';
 
 interface BaseChartProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ interface BaseChartProps {
   showTooltip?: boolean;
 }
 
-export const BaseChart = memo(
+const BaseChart = memo(
   ({
     children,
     height = 300,
@@ -69,3 +69,4 @@ export const BaseChart = memo(
 );
 
 BaseChart.displayName = 'BaseChart';
+export default BaseChart;

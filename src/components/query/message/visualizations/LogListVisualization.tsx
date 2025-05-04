@@ -5,7 +5,7 @@ import { NLVQueryResponse } from '@/types/query';
 import { WarningOutlined } from '@ant-design/icons';
 import { LogEntry, LogLevel } from '@/types/logs';
 import { toJSONDataFrame } from './converter';
-import { usePagination } from '@/lib/hooks/usePagination';
+import { usePagination } from '@/hooks/usePagination';
 import LogLevelBadge from '@/components/logs/LogLevelBadge';
 import Text from 'antd/es/typography/Text';
 

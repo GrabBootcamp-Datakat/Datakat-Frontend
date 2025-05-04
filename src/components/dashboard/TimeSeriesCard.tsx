@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { Card, Space, Button, Select } from 'antd';
 import {
   XAxis,
@@ -13,17 +14,18 @@ import { SettingOutlined } from '@ant-design/icons';
 import { TimeUnit } from '@/types/logs';
 import { CHART_COLORS } from '../constants/color';
 import { setTimeAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
-import { useAppDispatch } from '@/lib/hooks/hook';
-import { useGetTimeAnalysisQuery } from '@/store/api/logsApi';
-import { ChartSkeleton } from '../common/Skeleton';
-import { useState } from 'react';
-import { NoDataStatus } from '../common/Status';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
+import {
+  selectIsLoading,
+  selectTimeSeriesData,
+} from '@/store/slices/dashboardSlice';
+import { NoDataStatus, ChartSkeleton } from '../common';
 
 export default function TimeSeriesCard() {
-  const [timeUnit, setTimeUnit] = useState<TimeUnit>(TimeUnit.MINUTE);
   const dispatch = useAppDispatch();
-  const { data: timeAnalysisData, isLoading } =
-    useGetTimeAnalysisQuery(timeUnit);
+  const isLoading = useAppSelector(selectIsLoading);
+  const [timeUnit, setTimeUnit] = useState<TimeUnit>(TimeUnit.MINUTE);
+  const timeSeriesData = useAppSelector(selectTimeSeriesData);
 
   const handleCustomizeTimeAnalysis = () => {
     dispatch(setTimeAnalysisCustomization({ isCustomizing: true }));
@@ -33,7 +35,7 @@ export default function TimeSeriesCard() {
     return <ChartSkeleton title="Time Series Analysis" />;
   }
 
-  if (!timeAnalysisData) {
+  if (!timeSeriesData) {
     return <NoDataStatus title="Time Series Analysis" />;
   }
 
@@ -68,7 +70,7 @@ export default function TimeSeriesCard() {
       }
     >
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={timeAnalysisData}>
+        <AreaChart data={timeSeriesData}>
           <defs>
             <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
               <stop

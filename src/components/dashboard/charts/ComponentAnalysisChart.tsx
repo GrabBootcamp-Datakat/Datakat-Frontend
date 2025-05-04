@@ -1,8 +1,8 @@
 'use client';
 import { memo } from 'react';
 import { Bar } from 'recharts';
-import { BaseChart } from './BaseChart';
-import { CHART_COLORS } from '../constants/color';
+import { CHART_COLORS } from '../../constants/color';
+import BaseChart from './BaseChart';
 
 interface ChartDataPoint {
   component: string;
@@ -14,7 +14,7 @@ interface ComponentAnalysisChartProps {
   height?: number;
 }
 
-export const ComponentAnalysisChart = memo(
+const ComponentAnalysisChart = memo(
   ({ data, height }: ComponentAnalysisChartProps) => {
     // Convert data to the format expected by recharts
     const chartData = data.map((item) => ({
@@ -38,3 +38,4 @@ export const ComponentAnalysisChart = memo(
 );
 
 ComponentAnalysisChart.displayName = 'ComponentAnalysisChart';
+export default ComponentAnalysisChart;

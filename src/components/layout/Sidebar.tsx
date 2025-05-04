@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Layout, Menu } from "antd";
-import { useToggle } from "@/lib/hooks/useToggle";
+import { Layout, Menu } from 'antd';
+import { useToggle } from '@/hooks/useToggle';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   DashboardOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons';
 
 const { Sider } = Layout;
 
@@ -19,23 +19,23 @@ export default function Sidebar() {
       <Menu
         theme="dark"
         mode="inline"
-        defaultSelectedKeys={["1"]}
+        defaultSelectedKeys={['1']}
         items={[
           {
-            key: "1",
+            key: '1',
             icon: <DashboardOutlined />,
-            label: "Dashboard",
+            label: 'Dashboard',
           },
         ]}
       />
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: 0,
-          width: "100%",
-          padding: "16px",
-          textAlign: "center",
-          cursor: "pointer",
+          width: '100%',
+          padding: '16px',
+          textAlign: 'center',
+          cursor: 'pointer',
         }}
         onClick={toggle}
       >

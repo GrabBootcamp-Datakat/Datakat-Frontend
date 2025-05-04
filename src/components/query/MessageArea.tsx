@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { useAppSelector } from '@/lib/hooks/hook';
+import { useAppSelector } from '@/hooks/hook';
 import { selectMessages } from '@/store/slices/querySlice';
 import { QueryMessage } from '@/components/query/message';
 

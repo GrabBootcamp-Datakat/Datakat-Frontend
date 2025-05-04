@@ -13,9 +13,9 @@ import {
 } from 'recharts';
 import { SettingOutlined } from '@ant-design/icons';
 import { TimeUnit } from '@/types/logs';
-import { CHART_COLORS } from '../constants/color';
+import { CHART_COLORS } from '../../constants/color';
 import { setTimeAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
-import { useAppDispatch } from '@/lib/hooks/hook';
+import { useAppDispatch } from '@/hooks/hook';
 import { useState, memo, useMemo } from 'react';
 import {
   useGetTimeAnalysisQuery,

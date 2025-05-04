@@ -2,7 +2,7 @@
 import { Space } from 'antd';
 import { useState } from 'react';
 import { useSendQueryMessageMutation } from '@/store/api/queryApi';
-import { useAppSelector, useAppDispatch } from '@/lib/hooks/hook';
+import { useAppSelector, useAppDispatch } from '@/hooks/hook';
 import {
   addUserMessage,
   selectHasUserMessages,

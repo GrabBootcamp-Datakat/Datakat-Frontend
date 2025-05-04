@@ -1,43 +1,38 @@
 'use client';
-import React from 'react';
 import { Card, Button } from 'antd';
-import { SettingOutlined } from '@ant-design/icons';
-import { useAppDispatch } from '@/lib/hooks/hook';
-import { setComponentAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
 import {
-  Bar,
-  BarChart,
-  Cell,
-  ResponsiveContainer,
   XAxis,
   YAxis,
   Tooltip,
+  ResponsiveContainer,
+  Legend,
+  BarChart,
+  Bar,
 } from 'recharts';
-import { COLORS } from '../constants/color';
+import { SettingOutlined } from '@ant-design/icons';
 import { CHART_COLORS } from '../constants/color';
+import { setComponentAnalysisCustomization } from '@/store/slices/chartCustomizationSlice';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
-  useGetComponentAnalysisQuery,
-  useGetComponentQuery,
-} from '@/store/api/logsApi';
-import { NoDataStatus } from '../common/Status';
-import { ChartSkeleton } from '../common/Skeleton';
+  selectComponentAnalysisData,
+  selectIsLoading,
+} from '@/store/slices/dashboardSlice';
+import { NoDataStatus, ChartSkeleton } from '../common';
 
 export default function ComponentDistributionCard() {
-  const { data: componentAnalysisData, isLoading } =
-    useGetComponentAnalysisQuery();
-  const { data: componentData, isLoading: componentDataLoading } =
-    useGetComponentQuery();
   const dispatch = useAppDispatch();
+  const isLoading = useAppSelector(selectIsLoading);
+  const componentAnalysisData = useAppSelector(selectComponentAnalysisData);
 
-  const handleCustomizeComponentAnalysis = () => {
+  const handleCustomizeComponentDistribution = () => {
     dispatch(setComponentAnalysisCustomization({ isCustomizing: true }));
   };
 
-  if (isLoading || componentDataLoading) {
+  if (isLoading) {
     return <ChartSkeleton title="Component Distribution" />;
   }
 
-  if (!componentAnalysisData || !componentData) {
+  if (!componentAnalysisData || componentAnalysisData.length === 0) {
     return <NoDataStatus title="Component Distribution" />;
   }
 
@@ -49,29 +44,19 @@ export default function ComponentDistributionCard() {
         <Button
           type="text"
           icon={<SettingOutlined />}
-          onClick={handleCustomizeComponentAnalysis}
+          onClick={handleCustomizeComponentDistribution}
         >
           Customize
         </Button>
       }
     >
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart
-          data={componentAnalysisData}
-          layout="vertical"
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <XAxis type="number" />
-          <YAxis type="category" dataKey="component" width={150} />
+        <BarChart data={componentAnalysisData}>
+          <XAxis dataKey="component" />
+          <YAxis />
           <Tooltip />
-          <Bar dataKey="count" fill={CHART_COLORS.total}>
-            {componentData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={COLORS[index % COLORS.length]}
-              />
-            ))}
-          </Bar>
+          <Legend />
+          <Bar dataKey="count" fill={CHART_COLORS.total} />
         </BarChart>
       </ResponsiveContainer>
     </Card>

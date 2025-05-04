@@ -4,7 +4,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { LogLevel } from '@/types/logs';
 import { useCallback, useMemo } from 'react';
 import { Dayjs } from 'dayjs';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks/hook';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   setSearchQuery,
   setLevelFilter,

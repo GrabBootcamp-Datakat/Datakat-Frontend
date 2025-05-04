@@ -8,7 +8,7 @@ import {
   ApplicationListResponse,
 } from '@/types/metrics';
 
-const metricsApi = appApi.injectEndpoints({
+export const metricsApi = appApi.injectEndpoints({
   endpoints: (builder) => ({
     getSummaryMetrics: builder.query<
       MetricSummaryResponse,
