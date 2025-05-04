@@ -1,10 +1,10 @@
 import { Space } from 'antd';
 
-export default function LayoutScroll({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const LayoutStatic = ({ children }: { children: React.ReactNode }) => {
+  return <div className="flex h-full flex-col gap-4 px-8">{children}</div>;
+};
+
+export const LayoutScroll = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-full flex-col overflow-x-clip overflow-y-auto px-8 pb-4">
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -12,4 +12,4 @@ export default function LayoutScroll({
       </Space>
     </div>
   );
-}
+};

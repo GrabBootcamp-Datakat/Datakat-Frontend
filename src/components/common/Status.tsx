@@ -1,4 +1,3 @@
-'use client';
 import { Button, Card, Space, Spin } from 'antd';
 import { CHART_COLORS } from '@/components/constants/color';
 import Title from 'antd/es/typography/Title';
