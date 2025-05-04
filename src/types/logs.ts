@@ -65,14 +65,14 @@ export interface LogSearchRequest {
   levels?: LogLevel[];
   applications?: string[];
   sortBy?: SortBy;
-  sortOrder?: SortOrder;
+  sortOrder?: 'asc' | 'desc';
   page?: number;
   size?: number;
 }
 
 export interface LogSearchResponse {
   logs: LogEntry[];
-  total: number;
+  totalCount: number;
   page: number;
   size: number;
 }
