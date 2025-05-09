@@ -19,8 +19,6 @@ const VisualizeQuery = memo(
 
     const { resultType } = nlvQueryResponse;
 
-    console.log('resultType', resultType, nlvQueryResponse);
-
     switch (resultType) {
       case ResultType.TIMESERIES:
         return ChartVisualization(nlvQueryResponse);

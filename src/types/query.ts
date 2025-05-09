@@ -52,11 +52,23 @@ export interface LLMAnalysisResult {
   filters: QueryFilter[];
   group_by: string[];
   aggregation: AggregationType;
-  visualization_hint?: ChartType | null;
+  // visualization_hint?: ChartType | null;
+  visualization_hint: string;
+  sort?: {
+    field: string;
+    order: 'asc' | 'desc';
+  };
+  limit?: number;
+}
+
+export interface NLVQueryRequest {
+  conversationId?: string;
+  query: string;
 }
 
 export interface NLVQueryResponse {
-  originalQuery: string;
+  conversationId: string;
+  originalQuery?: string;
   interpretedQuery?: LLMAnalysisResult;
   resultType: ResultType;
   columns?: string[];

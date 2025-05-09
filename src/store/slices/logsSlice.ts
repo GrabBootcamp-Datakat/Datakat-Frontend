@@ -1,3 +1,4 @@
+'use client';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { LogLevel, SortBy } from '@/types/logs';
 import dayjs from 'dayjs';

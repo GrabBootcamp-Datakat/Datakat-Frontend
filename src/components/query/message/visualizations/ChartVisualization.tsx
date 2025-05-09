@@ -13,10 +13,12 @@ import {
   Cell,
   LineChart,
   Line,
+  TooltipProps,
 } from 'recharts';
 import { groupAndAggregateData } from './converter';
 import { ChartType, NLVQueryResponse } from '@/types/query';
 import { COLORS, PRIMARY_COLORS } from '@/components/constants';
+import { Alert } from 'antd';
 
 interface ChartDataPoint {
   [key: string]: string | number;
@@ -29,6 +31,30 @@ export default function ChartVisualization(
 
   if (!chartProps) return null;
 
+  if (chartProps.data.length === 1) {
+    console.log(chartProps);
+    const xField = chartProps.config.xField;
+    const yField = chartProps.config.yField;
+    return (
+      <Alert
+        message={
+          <>
+            <p>
+              <b>{xField}:</b>{' '}
+              {chartProps.data[0][xField as keyof (typeof chartProps.data)[0]]}
+            </p>
+            <p>
+              <b>{yField}:</b>{' '}
+              {chartProps.data[0][yField as keyof (typeof chartProps.data)[0]]}
+            </p>
+          </>
+        }
+        type="info"
+        showIcon
+      />
+    );
+  }
+
   switch (chartProps.type) {
     case ChartType.LINE:
       return (
@@ -36,8 +62,12 @@ export default function ChartVisualization(
           <LineChart data={chartProps.data}>
             <XAxis dataKey={chartProps.config.xField} />
             <YAxis />
-            <Tooltip />
             <Legend />
+            <Tooltip
+              content={(props: TooltipProps<number, string>) => (
+                <CustomizedTooltip {...props} />
+              )}
+            />
             <Line
               dataKey={chartProps.config.yField}
               stroke={PRIMARY_COLORS}
@@ -53,10 +83,19 @@ export default function ChartVisualization(
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={chartProps.data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={chartProps.config.xField} />
+            <XAxis
+              dataKey={chartProps.config.xField}
+              tickFormatter={(value: string) =>
+                value.length > 10 ? `${value.slice(0, 10)}...` : value
+              }
+            />
             <YAxis />
-            <Tooltip />
-            <Legend />
+            <Tooltip
+              content={(props: TooltipProps<number, string>) => (
+                <CustomizedTooltip {...props} />
+              )}
+            />
+            {/* <Legend /> */}
             <Bar
               dataKey={String(chartProps.config.yField)}
               fill={PRIMARY_COLORS}
@@ -91,8 +130,12 @@ export default function ChartVisualization(
                 />
               ))}
             </Pie>
-            <Tooltip />
-            <Legend />
+            <Tooltip
+              content={(props: TooltipProps<number, string>) => (
+                <CustomizedTooltipPie {...props} />
+              )}
+            />
+            {/* <Legend /> */}
           </PieChart>
         </ResponsiveContainer>
       );
@@ -100,6 +143,57 @@ export default function ChartVisualization(
       return null;
   }
 }
+
+const CustomizedTooltip = (props: TooltipProps<number, string>) => {
+  const { active, payload, label } = props;
+  if (active && payload && payload.length && label) {
+    return (
+      <div className="max-w-[300px] border border-gray-300 bg-white p-2">
+        <p
+          title={label}
+          className="overflow-hidden font-semibold text-ellipsis whitespace-nowrap"
+        >
+          {label}
+        </p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm">
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomizedTooltipPie = (props: TooltipProps<number, string>) => {
+  const { active, payload } = props;
+
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const name = payload[0].name || '';
+    const value = payload[0].value || '';
+    const label = data?.[name] || '';
+
+    return (
+      <div className="max-w-[300px] border border-gray-300 bg-white p-2">
+        <p
+          title={label}
+          className="overflow-hidden font-semibold text-ellipsis whitespace-nowrap"
+        >
+          {String(label).length > 40
+            ? `${String(label).slice(0, 40)}...`
+            : label}
+        </p>
+        <p className="overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap">
+          {name}: {value}
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+};
 
 export interface ChartData {
   type: ChartType;
@@ -122,8 +216,21 @@ const convertNLVResponseToChartData = (
   const { data, columns, originalQuery, interpretedQuery } = nlvQueryResponse;
   if (!data || !columns || !interpretedQuery) return;
 
-  const typeHint = (interpretedQuery.visualization_hint || 'bar') as ChartType;
-  const groupBys = interpretedQuery.group_by || [];
+  let typeHint: ChartType = ChartType.BAR;
+  if (interpretedQuery.visualization_hint?.includes('line')) {
+    typeHint = ChartType.LINE;
+  } else if (interpretedQuery.visualization_hint?.includes('bar')) {
+    typeHint = ChartType.BAR;
+  } else if (interpretedQuery.visualization_hint?.includes('pie')) {
+    typeHint = ChartType.PIE;
+  }
+
+  const groupBys = (interpretedQuery.group_by || []).map((col) => {
+    if (col.includes('tags.')) {
+      return col.replace('tags.', '');
+    }
+    return col;
+  });
   const aggOps =
     interpretedQuery.aggregation === 'COUNT'
       ? 'SUM'
@@ -136,7 +243,7 @@ const convertNLVResponseToChartData = (
 
   return {
     type: typeHint,
-    title: originalQuery,
+    title: originalQuery || '',
     data: grouped,
     config: {
       xField: groupBys[0],

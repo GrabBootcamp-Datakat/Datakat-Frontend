@@ -7,12 +7,17 @@ export const groupAndAggregateData = (nlvQueryResponse: NLVQueryResponse) => {
 
   if (!data || !columns || !interpretedQuery) return [];
 
-  const { group_by = [], aggregation } = interpretedQuery;
+  const { group_by = [], aggregation, sort } = interpretedQuery;
   const df = new dfd.DataFrame(data, { columns });
-
+  const processedGroupBy = group_by.map((col) => {
+    if (col.includes('tags.')) {
+      return col.replace('tags.', '');
+    }
+    return col;
+  });
   // Lấy các cột không phải là group_by và không phải là timestamp
   const nonGroupCols = columns.filter(
-    (col) => !group_by.includes(col) && col !== 'timestamp',
+    (col) => !processedGroupBy.includes(col) && col !== 'timestamp',
   );
 
   // Tạo một object chứa các phép tính aggregation
@@ -34,11 +39,36 @@ export const groupAndAggregateData = (nlvQueryResponse: NLVQueryResponse) => {
   });
 
   // Không có group_by: trả trực tiếp theo loại aggregation
-  if (group_by.length === 0) {
-    group_by.push('total');
+  if (processedGroupBy.length === 0) {
+    processedGroupBy.push('total');
   }
-  // Group and aggregate
-  const grouped = df.groupby(group_by).agg(aggOps);
+
+  // Sort
+  const { field, order } = sort || {};
+  let sortField = field;
+  if (field === 'value') {
+    sortField = `value_${(interpretedQuery.aggregation === 'COUNT'
+      ? 'SUM'
+      : interpretedQuery.aggregation
+    ).toLowerCase()}`;
+    // Group and aggregate
+    const grouped = df.groupby(processedGroupBy).agg(aggOps);
+    const sorted = grouped.sortValues(sortField, {
+      ascending: order === 'asc',
+    });
+    return dfd.toJSON(sorted);
+  } else if (field === 'time') {
+    sortField = 'timestamp';
+    const sorted = df
+      .sortValues(sortField, {
+        ascending: order === 'asc',
+      })
+      .groupby(processedGroupBy)
+      .agg(aggOps);
+    return dfd.toJSON(sorted);
+  }
+
+  const grouped = df.groupby(processedGroupBy).agg(aggOps);
   return dfd.toJSON(grouped);
 };
 
