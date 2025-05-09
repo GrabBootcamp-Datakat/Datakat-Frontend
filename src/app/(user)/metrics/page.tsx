@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Tabs, Space } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
-import { MetricName, TimeInterval } from '@/types/metrics';
+import { GroupBy, MetricName, TimeInterval } from '@/types/metrics';
 import { useAppDispatch } from '@/hooks/hook';
 import { appApi } from '@/store/api/appApi';
 import {
@@ -31,6 +31,9 @@ export default function MetricsPage() {
   );
   const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
     TimeInterval.TEN_MINUTES,
+  );
+  const [selectedGroupBy, setSelectedGroupBy] = useState<GroupBy>(
+    GroupBy.TOTAL,
   );
 
   // Convert Day.js date range to ISO strings for components
@@ -67,6 +70,8 @@ export default function MetricsPage() {
             setSelectedMetric={setSelectedMetric}
             selectedInterval={selectedInterval}
             setSelectedInterval={setSelectedInterval}
+            selectedGroupBy={selectedGroupBy}
+            setSelectedGroupBy={setSelectedGroupBy}
           />
 
           <MetricsStats
@@ -79,6 +84,7 @@ export default function MetricsPage() {
             selectedApplications={selectedApplications}
             selectedMetric={selectedMetric}
             selectedInterval={selectedInterval}
+            groupBy={selectedGroupBy}
           />
         </Space>
       ),

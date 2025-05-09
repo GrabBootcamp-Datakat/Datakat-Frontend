@@ -19,14 +19,14 @@ const items: MenuProps['items'] = [
     label: <Link href="/dashboard">Dashboard</Link>,
   },
   {
-    key: 'logs',
-    icon: <FileTextOutlined />,
-    label: <Link href="/logs">Logs</Link>,
-  },
-  {
     key: 'metrics',
     icon: <BarChartOutlined />,
     label: <Link href="/metrics">Metrics</Link>,
+  },
+  {
+    key: 'logs',
+    icon: <FileTextOutlined />,
+    label: <Link href="/logs">Logs</Link>,
   },
   {
     key: 'anomalies',

@@ -1,7 +1,7 @@
 'use client';
 import { useMemo } from 'react';
 import { Card, Select, Space, DatePicker } from 'antd';
-import { MetricName, TimeInterval } from '@/types/metrics';
+import { MetricName, TimeInterval, GroupBy } from '@/types/metrics';
 import { useGetApplicationsQuery } from '@/store/api/metricsApi';
 import dayjs from 'dayjs';
 
@@ -16,6 +16,8 @@ interface MetricsFiltersProps {
   setSelectedMetric: (metric: MetricName) => void;
   selectedInterval: TimeInterval;
   setSelectedInterval: (interval: TimeInterval) => void;
+  selectedGroupBy: GroupBy;
+  setSelectedGroupBy: (groupBy: GroupBy) => void;
 }
 
 export default function MetricsFilters({
@@ -27,6 +29,8 @@ export default function MetricsFilters({
   setSelectedMetric,
   selectedInterval,
   setSelectedInterval,
+  selectedGroupBy,
+  setSelectedGroupBy,
 }: MetricsFiltersProps) {
   const { data: applicationsData, isLoading: isApplicationsLoading } =
     useGetApplicationsQuery({
@@ -99,6 +103,19 @@ export default function MetricsFilters({
             </Select.Option>
             <Select.Option value={TimeInterval.ONE_HOUR}>1 Hour</Select.Option>
             <Select.Option value={TimeInterval.ONE_DAY}>1 Day</Select.Option>
+          </Select>
+          <Select
+            value={selectedGroupBy}
+            onChange={setSelectedGroupBy}
+            style={{ width: 150 }}
+          >
+            <Select.Option value={GroupBy.TOTAL}>Total</Select.Option>
+            <Select.Option value={GroupBy.LEVEL}>Level</Select.Option>
+            <Select.Option value={GroupBy.COMPONENT}>Component</Select.Option>
+            <Select.Option value={GroupBy.ERROR_KEY}>Error Key</Select.Option>
+            <Select.Option value={GroupBy.APPLICATION}>
+              Application
+            </Select.Option>
           </Select>
         </Space>
       </Space>

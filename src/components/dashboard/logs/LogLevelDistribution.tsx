@@ -45,10 +45,8 @@ export default function LogLevelDistribution({
             data={pieData}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={80}
-            paddingAngle={5}
             dataKey="value"
+            label={renderCustomizedLabel}
           >
             {pieData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -61,3 +59,23 @@ export default function LogLevelDistribution({
     </Card>
   );
 }
+
+interface RenderCustomizedLabelProps {
+  percent: number;
+  x: number;
+  y: number;
+  index: number;
+}
+
+const renderCustomizedLabel = ({
+  percent,
+  x,
+  y,
+  index,
+}: RenderCustomizedLabelProps) => {
+  return (
+    <text x={x} y={y} dy={18} textAnchor="middle" fill="#999">
+      {`(Rate ${(percent * 100).toFixed(2)}%)`}
+    </text>
+  );
+};

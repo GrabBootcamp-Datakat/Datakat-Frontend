@@ -10,7 +10,7 @@ import {
   Area,
 } from 'recharts';
 import { useGetTimeseriesMetricsQuery } from '@/store/api/metricsApi';
-import { MetricName, TimeInterval } from '@/types/metrics';
+import { MetricName, TimeInterval, GroupBy } from '@/types/metrics';
 import { ChartSkeleton } from '@/components/common/Skeleton';
 import { PRIMARY_COLORS } from '@/components/constants/color';
 import Title from 'antd/es/typography/Title';
@@ -20,6 +20,7 @@ interface MetricsChartProps {
   selectedApplications: string[];
   selectedMetric: MetricName;
   selectedInterval: TimeInterval;
+  groupBy: GroupBy;
 }
 
 export default function MetricsChart({
@@ -27,6 +28,7 @@ export default function MetricsChart({
   selectedApplications,
   selectedMetric,
   selectedInterval,
+  groupBy,
 }: MetricsChartProps) {
   const { data: timeseriesData, isLoading: isLoadingTimeseries } =
     useGetTimeseriesMetricsQuery({
@@ -35,6 +37,7 @@ export default function MetricsChart({
       applications: selectedApplications,
       metricName: selectedMetric,
       interval: selectedInterval,
+      groupBy,
     });
 
   if (isLoadingTimeseries) {
