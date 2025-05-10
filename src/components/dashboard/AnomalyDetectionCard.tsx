@@ -9,6 +9,19 @@ import { selectDateRange } from '@/store/slices/dashboardSlice';
 
 const { Text } = Typography;
 
+type Severity = 'high' | 'medium' | 'low';
+type Trend = 'up' | 'down' | 'flat';
+
+interface AnomalyStatsProps {
+  total: number;
+  anomalies: number;
+  severity: Severity;
+  rate: string;
+  trend: Trend;
+  mostFrequent: string;
+  affectedApps: string[];
+}
+
 const AnomalyDetectionCard = memo(() => {
   const dateRange = useAppSelector(selectDateRange);
   const { data, isLoading } = useGetLogsQuery({
@@ -18,10 +31,23 @@ const AnomalyDetectionCard = memo(() => {
   });
 
   const stats = useMemo(() => {
-    if (!data) return { total: 0, anomalies: 0, severity: 'low' as const, rate: '0%', trend: 'flat', mostFrequent: '', affectedApps: [] };
+    if (!data)
+      return {
+        total: 0,
+        anomalies: 0,
+        severity: 'low' as Severity,
+        rate: '0%',
+        trend: 'flat' as Trend,
+        mostFrequent: '',
+        affectedApps: [],
+      };
 
     const anomalies = data.logs.slice(0, 10);
-    const severity = anomalies.some((log) => log.level === LogLevel.ERROR) ? 'high' : 'medium';
+    const severity: Severity = anomalies.some(
+      (log) => log.level === LogLevel.ERROR,
+    )
+      ? 'high'
+      : 'medium';
     const rate = ((anomalies.length / data.totalCount) * 100).toFixed(1) + '%';
 
     const appCountMap: Record<string, number> = {};
@@ -29,10 +55,11 @@ const AnomalyDetectionCard = memo(() => {
       appCountMap[log.application] = (appCountMap[log.application] || 0) + 1;
     });
 
-    const mostFrequent = Object.entries(appCountMap).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+    const mostFrequent =
+      Object.entries(appCountMap).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
     const affectedApps = Object.keys(appCountMap);
 
-    const trend = anomalies.length % 2 === 0 ? 'down' : 'up';
+    const trend: Trend = anomalies.length % 2 === 0 ? 'down' : 'up';
 
     return {
       total: data.totalCount,
@@ -65,24 +92,14 @@ const AnomalyDetectionCard = memo(() => {
 export default AnomalyDetectionCard;
 AnomalyDetectionCard.displayName = 'AnomalyDetection';
 
-interface AnomalyStatsProps {
-  total: number;
-  anomalies: number;
-  severity: 'high' | 'medium' | 'low';
-  rate: string;
-  trend: 'up' | 'down' | 'flat';
-  mostFrequent: string;
-  affectedApps: string[];
-}
-
 const AnomalyStats = memo(({ stats }: { stats: AnomalyStatsProps }) => {
-  const severityColor = {
+  const severityColor: Record<Severity, string> = {
     high: 'red',
     medium: 'orange',
     low: 'blue',
   };
 
-  const trendSymbol = {
+  const trendSymbol: Record<Trend, string> = {
     up: '↑ Increasing',
     down: '↓ Decreasing',
     flat: '→ Stable',
@@ -112,7 +129,10 @@ const AnomalyStats = memo(({ stats }: { stats: AnomalyStatsProps }) => {
         </Space>
         <Space direction="vertical" size={0}>
           <Text type="secondary">Trend</Text>
-          <Text strong style={{ color: stats.trend === 'up' ? 'red' : 'green' }}>
+          <Text
+            strong
+            style={{ color: stats.trend === 'up' ? 'red' : 'green' }}
+          >
             {trendSymbol[stats.trend]}
           </Text>
         </Space>
@@ -124,7 +144,8 @@ const AnomalyStats = memo(({ stats }: { stats: AnomalyStatsProps }) => {
 
       {stats.mostFrequent && (
         <div className="pt-2">
-          <Text type="secondary">Most Frequent Issue</Text><br />
+          <Text type="secondary">Most Frequent Issue</Text>
+          <br />
           <Text strong>{stats.mostFrequent}</Text>
         </div>
       )}

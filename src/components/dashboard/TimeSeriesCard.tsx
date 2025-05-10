@@ -22,12 +22,27 @@ import {
 import { NoDataStatus, ChartSkeleton } from '../common';
 import dayjs from 'dayjs';
 
+interface TimeSeriesDataPoint {
+  time: string;
+  count: number;
+}
+
 // Utility to aggregate data based on selected unit
-const aggregateData = (data: any[], unit: TimeUnit) => {
+const aggregateData = (data: TimeSeriesDataPoint[], unit: TimeUnit) => {
   const grouped: Record<string, number[]> = {};
 
   data.forEach((item) => {
-    const key = dayjs(item.time).startOf(unit.toLowerCase() as any).format();
+    const key = dayjs(item.time)
+      .startOf(
+        unit.toLowerCase() as
+          | 'second'
+          | 'minute'
+          | 'hour'
+          | 'day'
+          | 'month'
+          | 'year',
+      )
+      .format();
     if (!grouped[key]) {
       grouped[key] = [];
     }
@@ -48,7 +63,7 @@ export default function TimeSeriesCard() {
 
   const data = useMemo(
     () => (timeSeriesData ? aggregateData(timeSeriesData, timeUnit) : []),
-    [timeSeriesData, timeUnit]
+    [timeSeriesData, timeUnit],
   );
 
   const handleCustomizeTimeAnalysis = () => {
@@ -56,7 +71,8 @@ export default function TimeSeriesCard() {
   };
 
   if (isLoading) return <ChartSkeleton title="Time Series Analysis" />;
-  if (!data || data.length === 0) return <NoDataStatus title="Time Series Analysis" />;
+  if (!data || data.length === 0)
+    return <NoDataStatus title="Time Series Analysis" />;
 
   return (
     <Card
@@ -92,13 +108,26 @@ export default function TimeSeriesCard() {
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={CHART_COLORS.total} stopOpacity={0.8} />
-              <stop offset="95%" stopColor={CHART_COLORS.total} stopOpacity={0} />
+              <stop
+                offset="5%"
+                stopColor={CHART_COLORS.total}
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor={CHART_COLORS.total}
+                stopOpacity={0}
+              />
             </linearGradient>
           </defs>
-          <XAxis dataKey="time" tickFormatter={(tick) => dayjs(tick).format('HH:mm')} />
+          <XAxis
+            dataKey="time"
+            tickFormatter={(tick) => dayjs(tick).format('HH:mm')}
+          />
           <YAxis />
-          <Tooltip labelFormatter={(label) => dayjs(label).format('YYYY-MM-DD HH:mm')} />
+          <Tooltip
+            labelFormatter={(label) => dayjs(label).format('YYYY-MM-DD HH:mm')}
+          />
           <Legend />
           <Area
             type="monotone"
