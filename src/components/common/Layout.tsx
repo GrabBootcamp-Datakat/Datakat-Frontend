@@ -13,3 +13,15 @@ export const LayoutScroll = ({ children }: { children: React.ReactNode }) => {
     </div>
   );
 };
+
+export const ComponentScroll = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="scrollbar-hide flex flex-1 flex-col space-y-4 overflow-y-auto">
+      {children}
+    </div>
+  );
+};

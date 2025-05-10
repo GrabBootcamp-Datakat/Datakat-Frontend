@@ -19,6 +19,7 @@ import {
   REGISTER,
 } from 'redux-persist';
 import { appApi } from '@/store/api/appApi';
+import { aiApi } from '@/store/api/aiApi';
 import chartCustomizationReducer, {
   ChartCustomizationState,
 } from '@/store/slices/chartCustomizationSlice';
@@ -27,6 +28,7 @@ import dashboardReducer, {
 } from '@/store/slices/dashboardSlice';
 import logsReducer, { LogsState } from '@/store/slices/logsSlice';
 import queryReducer, { QueryState } from '@/store/slices/querySlice';
+import anomalyReducer, { AnomalyState } from './slices/anomalySlice';
 
 const createNoopStorage = () => {
   return {
@@ -49,25 +51,29 @@ const storage =
 
 export type RootState = {
   [appApi.reducerPath]: ReturnType<typeof appApi.reducer>;
+  [aiApi.reducerPath]: ReturnType<typeof aiApi.reducer>;
   chartCustomization: ChartCustomizationState;
   dashboard: DashboardState;
   logs: LogsState;
   query: QueryState;
+  anomaly: AnomalyState;
 };
 
 const persistConfig = {
   key: 'root',
   storage,
   stateReconciler: autoMergeLevel2,
-  whitelist: ['chartCustomization', 'query', 'dashboard', 'logs'],
+  whitelist: ['dashboard', 'logs', 'anomaly', 'query'],
 };
 
 const appReducer = combineReducers({
   [appApi.reducerPath]: appApi.reducer,
+  [aiApi.reducerPath]: aiApi.reducer,
   chartCustomization: chartCustomizationReducer,
   dashboard: dashboardReducer,
   query: queryReducer,
   logs: logsReducer,
+  anomaly: anomalyReducer,
 });
 
 const rootReducer: Reducer<RootState, Action> = (state, action) => {
@@ -86,7 +92,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(appApi.middleware),
+    }).concat(appApi.middleware, aiApi.middleware),
   devTools: true,
 });
 

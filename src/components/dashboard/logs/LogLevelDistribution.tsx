@@ -67,12 +67,8 @@ interface RenderCustomizedLabelProps {
   index: number;
 }
 
-const renderCustomizedLabel = ({
-  percent,
-  x,
-  y,
-  index,
-}: RenderCustomizedLabelProps) => {
+const renderCustomizedLabel = (props: RenderCustomizedLabelProps) => {
+  const { percent, x, y } = props;
   return (
     <text x={x} y={y} dy={18} textAnchor="middle" fill="#999">
       {`(Rate ${(percent * 100).toFixed(2)}%)`}
