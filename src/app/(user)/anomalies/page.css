@@ -2,10 +2,9 @@
   height: 100% !important;
 }
 
-#rc-tabs-1-panel-detected {
-  height: 100% !important;
-}
-
+#rc-tabs-0-panel-detected,
+#rc-tabs-1-panel-detected,
+#rc-tabs-0-panel-historical,
 #rc-tabs-1-panel-historical {
   height: 100% !important;
 }

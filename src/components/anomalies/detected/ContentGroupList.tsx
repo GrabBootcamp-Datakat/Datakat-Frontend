@@ -29,12 +29,36 @@ export default function ContentGroupList() {
   const filteredContentGroups = useMemo(() => {
     const lowerCaseSearch = filters.search.toLowerCase();
     return contentGroups.filter((group) => {
+      // Search filter
       const matchesSearch =
         !filters.search ||
         group.content.toLowerCase().includes(lowerCaseSearch) ||
         group.count.toString().includes(lowerCaseSearch);
 
-      return matchesSearch;
+      // Event ID filter
+      const matchesEventId =
+        filters.eventIdFilter === 'all' ||
+        group.anomalies.some(
+          (anomaly) => anomaly.event_id === filters.eventIdFilter,
+        );
+
+      // Level filter
+      const matchesLevel =
+        filters.levelFilter === 'all' ||
+        group.anomalies.some(
+          (anomaly) => anomaly.level === filters.levelFilter,
+        );
+
+      // Component filter
+      const matchesComponent =
+        filters.componentFilter === 'all' ||
+        group.anomalies.some(
+          (anomaly) => anomaly.component === filters.componentFilter,
+        );
+
+      return (
+        matchesSearch && matchesEventId && matchesLevel && matchesComponent
+      );
     });
   }, [contentGroups, filters]);
 
@@ -87,6 +111,17 @@ const ContentGroupItem = memo(
   }) => {
     const isSelected = selectedGroup?.content === group.content;
 
+    // Get unique levels and components from anomalies
+    const uniqueLevels = useMemo(() => {
+      const levels = new Set(group.anomalies.map((a) => a.level));
+      return Array.from(levels);
+    }, [group.anomalies]);
+
+    const uniqueComponents = useMemo(() => {
+      const components = new Set(group.anomalies.map((a) => a.component));
+      return Array.from(components);
+    }, [group.anomalies]);
+
     return (
       <Card
         hoverable
@@ -103,9 +138,19 @@ const ContentGroupItem = memo(
             <Paragraph ellipsis style={{ maxWidth: '100%', marginBottom: 8 }}>
               {group.content || 'Unknown Content'}
             </Paragraph>
-            <div>
+            <div className="flex flex-wrap gap-2">
               <Tag color="blue">{group.count} occurrences</Tag>
-              <Text type="secondary" style={{ marginLeft: 8 }}>
+              {uniqueLevels.map((level) => (
+                <Tag key={level} color={level === 'ERROR' ? 'red' : 'orange'}>
+                  {level}
+                </Tag>
+              ))}
+              {uniqueComponents.map((component) => (
+                <Tag key={component} color="green">
+                  {component}
+                </Tag>
+              ))}
+              <Text type="secondary">
                 First: {new Date(group.timestamps[0]).toLocaleString()}
               </Text>
             </div>
@@ -115,10 +160,6 @@ const ContentGroupItem = memo(
     );
   },
   (prevProps, nextProps) => {
-    // Re-render nếu:
-    // - nội dung group thay đổi (dữ liệu mới)
-    // - selectedGroup thay đổi liên quan đến chính item này
-
     const isSameGroup = prevProps.group === nextProps.group;
     const wasSelected =
       prevProps.selectedGroup?.content === prevProps.group.content;
