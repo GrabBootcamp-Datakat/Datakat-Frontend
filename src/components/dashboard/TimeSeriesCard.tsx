@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, Space, Button, Select } from 'antd';
 import {
   XAxis,
@@ -20,24 +20,43 @@ import {
   selectTimeSeriesData,
 } from '@/store/slices/dashboardSlice';
 import { NoDataStatus, ChartSkeleton } from '../common';
+import dayjs from 'dayjs';
+
+// Utility to aggregate data based on selected unit
+const aggregateData = (data: any[], unit: TimeUnit) => {
+  const grouped: Record<string, number[]> = {};
+
+  data.forEach((item) => {
+    const key = dayjs(item.time).startOf(unit.toLowerCase() as any).format();
+    if (!grouped[key]) {
+      grouped[key] = [];
+    }
+    grouped[key].push(item.count);
+  });
+
+  return Object.entries(grouped).map(([time, counts]) => ({
+    time,
+    count: Math.round(counts.reduce((a, b) => a + b, 0) / counts.length),
+  }));
+};
 
 export default function TimeSeriesCard() {
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectIsLoading);
-  const [timeUnit, setTimeUnit] = useState<TimeUnit>(TimeUnit.MINUTE);
   const timeSeriesData = useAppSelector(selectTimeSeriesData);
+  const [timeUnit, setTimeUnit] = useState<TimeUnit>(TimeUnit.MINUTE);
+
+  const data = useMemo(
+    () => (timeSeriesData ? aggregateData(timeSeriesData, timeUnit) : []),
+    [timeSeriesData, timeUnit]
+  );
 
   const handleCustomizeTimeAnalysis = () => {
     dispatch(setTimeAnalysisCustomization({ isCustomizing: true }));
   };
 
-  if (isLoading) {
-    return <ChartSkeleton title="Time Series Analysis" />;
-  }
-
-  if (!timeSeriesData) {
-    return <NoDataStatus title="Time Series Analysis" />;
-  }
+  if (isLoading) return <ChartSkeleton title="Time Series Analysis" />;
+  if (!data || data.length === 0) return <NoDataStatus title="Time Series Analysis" />;
 
   return (
     <Card
@@ -70,24 +89,16 @@ export default function TimeSeriesCard() {
       }
     >
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={timeSeriesData}>
+        <AreaChart data={data}>
           <defs>
             <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="5%"
-                stopColor={CHART_COLORS.total}
-                stopOpacity={0.8}
-              />
-              <stop
-                offset="95%"
-                stopColor={CHART_COLORS.total}
-                stopOpacity={0}
-              />
+              <stop offset="5%" stopColor={CHART_COLORS.total} stopOpacity={0.8} />
+              <stop offset="95%" stopColor={CHART_COLORS.total} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <XAxis dataKey="time" />
+          <XAxis dataKey="time" tickFormatter={(tick) => dayjs(tick).format('HH:mm')} />
           <YAxis />
-          <Tooltip />
+          <Tooltip labelFormatter={(label) => dayjs(label).format('YYYY-MM-DD HH:mm')} />
           <Legend />
           <Area
             type="monotone"
