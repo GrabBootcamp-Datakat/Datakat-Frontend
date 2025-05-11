@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { Card, Button, Empty, notification } from 'antd';
-import { BarChartOutlined } from '@ant-design/icons';
 import { useAnalyzeAnomalyMutation } from '@/store/api/anomalyApi';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
@@ -70,12 +69,23 @@ export default function ContentGroupDetails() {
         title="Content Group Details"
         extra={
           <Button
-            type="primary"
+            // type="primary" // Loại bỏ dòng này để không dùng style mặc định của nút primary
             size="small"
             onClick={handleAnalyze}
             loading={isAnalyzing}
-            icon={<BarChartOutlined />}
+            style={{
+              backgroundColor: 'white', 
+              color: 'black',         
+              borderColor: 'black', 
+              borderWidth: '0.25px',       
+              borderStyle: 'solid',     
+            }}
           >
+            <img
+              src="/brain.png" 
+              alt="Analyze"
+              style={{ marginRight: 8, height: '14px', verticalAlign: 'middle' }}
+            />
             Analyze
           </Button>
         }

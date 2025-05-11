@@ -14,9 +14,9 @@ import { LLMAnalysisResponse } from '@/types/anomaly';
 import {
   WarningOutlined,
   BugOutlined,
-  SolutionOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
+  BulbOutlined,
 } from '@ant-design/icons';
 
 const { Text } = Typography;
@@ -221,7 +221,7 @@ export default function AnalysisResult({ analysis }: AnalysisResultProps) {
         <Panel
           header={
             <Space>
-              <SolutionOutlined />
+              <BulbOutlined />
               <Text strong>Recommendations</Text>
             </Space>
           }
