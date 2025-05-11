@@ -29,6 +29,7 @@ import dashboardReducer, {
 import logsReducer, { LogsState } from '@/store/slices/logsSlice';
 import queryReducer, { QueryState } from '@/store/slices/querySlice';
 import anomalyReducer, { AnomalyState } from './slices/anomalySlice';
+import metricsReducer, { MetricsState } from '@/store/slices/metricsSlice';
 
 const createNoopStorage = () => {
   return {
@@ -54,16 +55,17 @@ export type RootState = {
   [aiApi.reducerPath]: ReturnType<typeof aiApi.reducer>;
   chartCustomization: ChartCustomizationState;
   dashboard: DashboardState;
+  metrics: MetricsState;
   logs: LogsState;
-  query: QueryState;
   anomaly: AnomalyState;
+  query: QueryState;
 };
 
 const persistConfig = {
   key: 'root',
   storage,
   stateReconciler: autoMergeLevel2,
-  whitelist: ['dashboard', 'logs', 'anomaly', 'query'],
+  whitelist: ['dashboard', 'logs', 'anomaly', 'query', 'metrics'],
 };
 
 const appReducer = combineReducers({
@@ -71,9 +73,10 @@ const appReducer = combineReducers({
   [aiApi.reducerPath]: aiApi.reducer,
   chartCustomization: chartCustomizationReducer,
   dashboard: dashboardReducer,
-  query: queryReducer,
+  metrics: metricsReducer,
   logs: logsReducer,
   anomaly: anomalyReducer,
+  query: queryReducer,
 });
 
 const rootReducer: Reducer<RootState, Action> = (state, action) => {

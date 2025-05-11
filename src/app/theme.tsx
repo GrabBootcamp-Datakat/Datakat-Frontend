@@ -1,9 +1,10 @@
 'use client';
 
-import { ConfigProvider, App } from 'antd';
+import { ConfigProvider, App, theme as antdTheme } from 'antd';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 
 export const theme = {
+  algorithm: antdTheme.defaultAlgorithm,
   components: {
     Card: {
       bodyPadding: 12,

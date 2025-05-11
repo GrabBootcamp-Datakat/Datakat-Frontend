@@ -4,34 +4,29 @@ import { Card, Select, Space, DatePicker } from 'antd';
 import { MetricName, TimeInterval, GroupBy } from '@/types/metrics';
 import { useGetApplicationsQuery } from '@/store/api/metricsApi';
 import dayjs from 'dayjs';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
+import {
+  selectDateRange,
+  selectSelectedApplications,
+  selectSelectedGroupBy,
+  selectSelectedInterval,
+  selectSelectedMetric,
+  setDateRange,
+  setSelectedApplications,
+  setSelectedGroupBy,
+  setSelectedInterval,
+  setSelectedMetric,
+} from '@/store/slices/metricsSlice';
 
 const { RangePicker } = DatePicker;
 
-interface MetricsFiltersProps {
-  dateRange: [string, string];
-  setDateRange: (dates: [dayjs.Dayjs, dayjs.Dayjs]) => void;
-  selectedApplications: string[];
-  setSelectedApplications: (apps: string[]) => void;
-  selectedMetric: MetricName;
-  setSelectedMetric: (metric: MetricName) => void;
-  selectedInterval: TimeInterval;
-  setSelectedInterval: (interval: TimeInterval) => void;
-  selectedGroupBy: GroupBy;
-  setSelectedGroupBy: (groupBy: GroupBy) => void;
-}
-
-export default function MetricsFilters({
-  dateRange,
-  setDateRange,
-  selectedApplications,
-  setSelectedApplications,
-  selectedMetric,
-  setSelectedMetric,
-  selectedInterval,
-  setSelectedInterval,
-  selectedGroupBy,
-  setSelectedGroupBy,
-}: MetricsFiltersProps) {
+export default function MetricsFilters() {
+  const dispatch = useAppDispatch();
+  const dateRange = useAppSelector(selectDateRange);
+  const selectedApplications = useAppSelector(selectSelectedApplications);
+  const selectedMetric = useAppSelector(selectSelectedMetric);
+  const selectedInterval = useAppSelector(selectSelectedInterval);
+  const selectedGroupBy = useAppSelector(selectSelectedGroupBy);
   const { data: applicationsData, isLoading: isApplicationsLoading } =
     useGetApplicationsQuery({
       startTime: dateRange[0],
@@ -51,16 +46,27 @@ export default function MetricsFilters({
         <Space wrap>
           <RangePicker
             value={dateRangeValue}
-            onChange={(dates) =>
-              dates && setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])
-            }
+            onChange={(dates) => {
+              console.log('dates', dates);
+              if (dates) {
+                const [start, end] = dates;
+                dispatch(
+                  setDateRange([
+                    dayjs(start).toISOString(),
+                    dayjs(end).toISOString(),
+                  ]),
+                );
+              }
+            }}
             showTime
             format="YYYY-MM-DD HH:mm:ss"
+            needConfirm={false}
+            allowClear={false}
           />
           <Select
             mode="multiple"
             value={selectedApplications}
-            onChange={setSelectedApplications}
+            onChange={(apps) => dispatch(setSelectedApplications(apps))}
             style={{ width: 300 }}
             placeholder="Select applications"
             allowClear
@@ -74,7 +80,7 @@ export default function MetricsFilters({
           </Select>
           <Select
             value={selectedMetric}
-            onChange={setSelectedMetric}
+            onChange={(metric) => dispatch(setSelectedMetric(metric))}
             style={{ width: 150 }}
           >
             <Select.Option value={MetricName.LOG_EVENT}>
@@ -86,7 +92,7 @@ export default function MetricsFilters({
           </Select>
           <Select
             value={selectedInterval}
-            onChange={setSelectedInterval}
+            onChange={(interval) => dispatch(setSelectedInterval(interval))}
             style={{ width: 150 }}
           >
             <Select.Option value={TimeInterval.ONE_MINUTE}>
@@ -106,7 +112,7 @@ export default function MetricsFilters({
           </Select>
           <Select
             value={selectedGroupBy}
-            onChange={setSelectedGroupBy}
+            onChange={(groupBy) => dispatch(setSelectedGroupBy(groupBy))}
             style={{ width: 150 }}
           >
             <Select.Option value={GroupBy.TOTAL}>Total</Select.Option>

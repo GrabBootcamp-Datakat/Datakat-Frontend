@@ -1,17 +1,17 @@
 'use client';
 import { Card, Statistic } from 'antd';
 import { useGetSummaryMetricsQuery } from '@/store/api/metricsApi';
+import { useAppSelector } from '@/hooks/hook';
+import {
+  selectDateRange,
+  selectSelectedApplications,
+} from '@/store/slices/metricsSlice';
 import dayjs from 'dayjs';
 
-interface MetricsStatsProps {
-  dateRange: [string, string];
-  selectedApplications: string[];
-}
+export default function MetricsStats() {
+  const dateRange = useAppSelector(selectDateRange);
+  const selectedApplications = useAppSelector(selectSelectedApplications);
 
-export default function MetricsStats({
-  dateRange,
-  selectedApplications,
-}: MetricsStatsProps) {
   const { data: summaryData, isLoading } = useGetSummaryMetricsQuery({
     startTime: dateRange[0],
     endTime: dateRange[1],

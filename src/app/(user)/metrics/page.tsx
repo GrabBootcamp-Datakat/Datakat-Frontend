@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { Tabs, Space } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
-import { GroupBy, MetricName, TimeInterval } from '@/types/metrics';
 import { useAppDispatch } from '@/hooks/hook';
 import { appApi } from '@/store/api/appApi';
 import {
@@ -12,89 +11,44 @@ import {
 } from '@/components/metrics';
 import { LayoutScroll, PageTitle } from '@/components/common';
 import Text from 'antd/es/typography/Title';
-import dayjs from 'dayjs';
+
+const tabItems = [
+  {
+    key: 'overview',
+    label: 'Overview',
+    children: (
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <MetricsFilters />
+        <MetricsStats />
+        <MetricsChart />
+      </Space>
+    ),
+  },
+  // {
+  //   key: 'details',
+  //   label: 'Details',
+  //   children: <div>Detailed metrics view coming soon...</div>,
+  // },
+];
 
 export default function MetricsPage() {
   const dispatch = useAppDispatch();
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
-    dayjs().subtract(15, 'year'),
-    dayjs(),
-  ]);
   const [currentTime, setCurrentTime] = useState<string>(
     new Date().toLocaleTimeString(),
   );
-  const [selectedApplications, setSelectedApplications] = useState<string[]>(
-    [],
-  );
-  const [selectedMetric, setSelectedMetric] = useState<MetricName>(
-    MetricName.LOG_EVENT,
-  );
-  const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
-    TimeInterval.TEN_MINUTES,
-  );
-  const [selectedGroupBy, setSelectedGroupBy] = useState<GroupBy>(
-    GroupBy.TOTAL,
-  );
-
-  // Convert Day.js date range to ISO strings for components
-  const dateRangeISO: [string, string] = [
-    dateRange[0].toISOString(),
-    dateRange[1].toISOString(),
-  ];
 
   useEffect(() => {
     dispatch(appApi.util.invalidateTags(['Metrics']));
     setCurrentTime(new Date().toLocaleTimeString());
-  }, [dispatch, selectedApplications, selectedMetric, selectedInterval]);
+  }, [dispatch]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       dispatch(appApi.util.invalidateTags(['Metrics']));
       setCurrentTime(new Date().toLocaleTimeString());
-    }, 3000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [dispatch]);
-
-  const tabItems = [
-    {
-      key: 'overview',
-      label: 'Overview',
-      children: (
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <MetricsFilters
-            dateRange={dateRangeISO}
-            setDateRange={setDateRange}
-            selectedApplications={selectedApplications}
-            setSelectedApplications={setSelectedApplications}
-            selectedMetric={selectedMetric}
-            setSelectedMetric={setSelectedMetric}
-            selectedInterval={selectedInterval}
-            setSelectedInterval={setSelectedInterval}
-            selectedGroupBy={selectedGroupBy}
-            setSelectedGroupBy={setSelectedGroupBy}
-          />
-
-          <MetricsStats
-            dateRange={dateRangeISO}
-            selectedApplications={selectedApplications}
-          />
-
-          <MetricsChart
-            dateRange={dateRangeISO}
-            selectedApplications={selectedApplications}
-            selectedMetric={selectedMetric}
-            selectedInterval={selectedInterval}
-            groupBy={selectedGroupBy}
-          />
-        </Space>
-      ),
-    },
-    {
-      key: 'details',
-      label: 'Details',
-      children: <div>Detailed metrics view coming soon...</div>,
-    },
-  ];
 
   return (
     <LayoutScroll>

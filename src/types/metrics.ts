@@ -40,15 +40,17 @@ export interface MetricTimeseriesRequest {
   groupBy?: GroupBy;
 }
 
+export interface MetricTimeseriesSeries {
+  name: string;
+  data: {
+    timestamp: number;
+    value: number;
+  }[];
+}
+
 export interface MetricTimeseriesResponse {
   timestamps: string[];
-  series: {
-    name: string;
-    data: {
-      timestamp: number;
-      value: number;
-    }[];
-  }[];
+  series: MetricTimeseriesSeries[];
 }
 
 export interface ApplicationListResponse {
