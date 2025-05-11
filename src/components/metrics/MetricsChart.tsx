@@ -1,6 +1,5 @@
 /* eslint-disable */
 'use client';
-
 import { Card, Select } from 'antd';
 import {
   XAxis,
@@ -25,9 +24,9 @@ import {
   selectSelectedInterval,
   selectSelectedGroupBy,
 } from '@/store/slices/metricsSlice';
-import type { AreaDot } from 'recharts/types/cartesian/Area';
-import Title from 'antd/es/typography/Title';
 import { MetricTimeseriesSeries } from '@/types/metrics';
+import Title from 'antd/es/typography/Title';
+import dayjs from 'dayjs';
 
 export default function MetricsChart() {
   const dateRange = useAppSelector(selectDateRange);
@@ -99,21 +98,24 @@ export default function MetricsChart() {
             mode="multiple"
             maxTagCount={1}
             onChange={handleSelectChange}
+            placeholder="Select series"
             value={selectedSeries}
             options={sortedSeries.map((series) => ({
               label: series.name,
               value: series.name,
             }))}
-            placeholder="Select series"
             style={{ width: 'max-content', minWidth: 125 }}
           />
         )}
       </div>
 
       {filteredSeries.map((series) => {
-        const chartData = [...series.data].sort(
-          (a, b) => a.timestamp - b.timestamp,
-        );
+        const chartData = [...series.data]
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .map((d) => ({
+            ...d,
+            timestamp: dayjs(d.timestamp).format('YYYY-MM-DD HH:mm'),
+          }));
         const values = chartData.map((d) => d.value);
         const minValue = Math.min(...values);
         const maxValue = Math.max(...values);
@@ -136,7 +138,7 @@ export default function MetricsChart() {
 
 type ChartProps = {
   name: string;
-  chartData: { timestamp: number; value: number }[];
+  chartData: { timestamp: string; value: number }[];
   minValue: number;
   avgValue: number;
   maxValue: number;

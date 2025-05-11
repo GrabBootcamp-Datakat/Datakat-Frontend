@@ -12,6 +12,9 @@ import {
 import { LayoutScroll, PageTitle } from '@/components/common';
 import Text from 'antd/es/typography/Title';
 
+// 1 minute
+const REFRESH_INTERVAL = 1000 * 60;
+
 const tabItems = [
   {
     key: 'overview',
@@ -46,7 +49,7 @@ export default function MetricsPage() {
     const interval = setInterval(() => {
       dispatch(appApi.util.invalidateTags(['Metrics']));
       setCurrentTime(new Date().toLocaleTimeString());
-    }, 5000);
+    }, REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, [dispatch]);
 

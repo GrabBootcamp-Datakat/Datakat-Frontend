@@ -40,6 +40,20 @@ export default function MetricsFilters() {
     [dateRange],
   );
 
+  const allApps = applicationsData?.applications || [];
+
+  const handleAppChange = (value: string[]) => {
+    if (value.includes('ALL')) {
+      if (selectedApplications.length === allApps.length) {
+        dispatch(setSelectedApplications([])); // Deselect all
+      } else {
+        dispatch(setSelectedApplications(allApps)); // Select all
+      }
+    } else {
+      dispatch(setSelectedApplications(value));
+    }
+  };
+
   return (
     <Card>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -65,13 +79,17 @@ export default function MetricsFilters() {
           />
           <Select
             mode="multiple"
-            value={selectedApplications}
-            onChange={(apps) => dispatch(setSelectedApplications(apps))}
-            style={{ width: 300 }}
-            placeholder="Select applications"
+            maxTagCount={1}
             allowClear
+            value={selectedApplications}
             loading={isApplicationsLoading}
+            placeholder="Select applications"
+            onChange={handleAppChange}
+            style={{ width: 340 }}
           >
+            <Select.Option key="ALL" value="ALL">
+              Select All
+            </Select.Option>
             {applicationsData?.applications?.map((app) => (
               <Select.Option key={app} value={app}>
                 {app}
