@@ -11,6 +11,7 @@ import {
   CustomizationDrawer,
   DistributionChart,
 } from './charts';
+import { ChartType } from './charts/distribution/type';
 
 export default function ComponentDistributionCard() {
   const [open, setOpen] = useState(false);
@@ -25,6 +26,11 @@ export default function ComponentDistributionCard() {
       metricName,
       dimension,
     });
+
+  const [isMultiMode, setIsMultiMode] = useState<boolean>(false);
+  const [selectedChartTypes, setSelectedChartTypes] = useState<ChartType[]>([
+    'bar',
+  ]);
 
   if (isDistributionLoading) {
     return <ChartSkeleton title="Component Distribution" />;
@@ -55,6 +61,10 @@ export default function ComponentDistributionCard() {
             data={distributionMetrics.distribution}
             dimension={dimension}
             logsQuery={{ startTime, endTime }}
+            chartTypes={selectedChartTypes}
+            onChartTypesChange={setSelectedChartTypes}
+            isMultiMode={isMultiMode}
+            setIsMultiMode={setIsMultiMode}
           />
         </div>
       </Card>
@@ -63,12 +73,16 @@ export default function ComponentDistributionCard() {
         open={open}
         onClose={() => setOpen(false)}
         title="Component Distribution"
+        type="component"
         currentSettings={{
           metricName,
           startTime,
           endTime,
+          chartTypes: selectedChartTypes,
+          isMultiMode,
         }}
-        type="component"
+        onChartTypesChange={setSelectedChartTypes}
+        onIsMultiModeChange={setIsMultiMode}
       />
     </>
   );

@@ -14,7 +14,7 @@ import {
   CustomizationDrawer,
   DistributionChart,
 } from './charts';
-
+import { ChartType } from './charts/distribution/type';
 export default function ApplicationDistributionCard() {
   const [open, setOpen] = useState(false);
   const { startTime, endTime, metricName, dimension } = useAppSelector(
@@ -34,6 +34,11 @@ export default function ApplicationDistributionCard() {
       metricName,
       dimension,
     });
+
+  const [isMultiMode, setIsMultiMode] = useState<boolean>(false);
+  const [selectedChartTypes, setSelectedChartTypes] = useState<ChartType[]>([
+    'bar',
+  ]);
 
   if (isDistributionLoading || isApplicationsLoading) {
     return <ChartSkeleton title="Application Distribution" />;
@@ -64,6 +69,10 @@ export default function ApplicationDistributionCard() {
             data={distributionMetrics.distribution}
             dimension={dimension}
             logsQuery={{ startTime, endTime }}
+            isMultiMode={isMultiMode}
+            setIsMultiMode={setIsMultiMode}
+            chartTypes={selectedChartTypes}
+            onChartTypesChange={setSelectedChartTypes}
           />
         </div>
       </Card>
@@ -72,13 +81,17 @@ export default function ApplicationDistributionCard() {
         open={open}
         onClose={() => setOpen(false)}
         title="Application Distribution"
+        type="application"
         currentSettings={{
           metricName,
           startTime,
           endTime,
           applications: applications.applications,
+          chartTypes: selectedChartTypes,
+          isMultiMode,
         }}
-        type="application"
+        onChartTypesChange={setSelectedChartTypes}
+        onIsMultiModeChange={setIsMultiMode}
       />
     </>
   );

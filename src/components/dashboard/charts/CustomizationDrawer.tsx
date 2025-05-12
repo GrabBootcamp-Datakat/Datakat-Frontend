@@ -19,6 +19,8 @@ import {
   setComponentDistribution,
   setLogLevelOverview,
 } from '@/store/slices/dashboardSlice';
+import { CHART_TYPES } from './distribution/constants';
+import { ChartType } from './distribution/type';
 
 const { RangePicker } = DatePicker;
 const { Text } = Typography;
@@ -38,6 +40,7 @@ interface AISuggestion {
   applications?: string[];
   startTime?: string;
   endTime?: string;
+  chartTypes?: ChartType[];
 }
 
 interface CustomizationDrawerProps {
@@ -49,9 +52,13 @@ interface CustomizationDrawerProps {
     startTime: string;
     endTime: string;
     applications?: string[];
+    isMultiMode?: boolean;
+    chartTypes?: ChartType[];
   };
   type: 'application' | 'component' | 'logLevel';
   availableApplications?: string[];
+  onChartTypesChange?: (chartTypes: ChartType[]) => void;
+  onIsMultiModeChange?: (isMultiMode: boolean) => void;
 }
 
 export default function CustomizationDrawer({
@@ -61,6 +68,8 @@ export default function CustomizationDrawer({
   currentSettings,
   type,
   availableApplications,
+  onChartTypesChange,
+  onIsMultiModeChange,
 }: CustomizationDrawerProps) {
   const dispatch = useAppDispatch();
   const [chatInput, setChatInput] = useState('');
@@ -110,6 +119,17 @@ export default function CustomizationDrawer({
     }
   };
 
+  const handleChartTypesChange = (value: ChartType[]) => {
+    if (type !== 'logLevel' && onChartTypesChange) {
+      onChartTypesChange(value);
+      if (value.length > 1) {
+        onIsMultiModeChange?.(true);
+      } else {
+        onIsMultiModeChange?.(false);
+      }
+    }
+  };
+
   const processGeminiQuery = async (query: string) => {
     if (!query.trim()) return;
 
@@ -132,9 +152,11 @@ export default function CustomizationDrawer({
                 - Metric: ${currentSettings.metricName}
                 ${type === 'logLevel' ? `- Applications: ${(currentSettings.applications || []).join(', ') || 'All'}` : ''}
                 - Time range: ${dayjs(currentSettings.startTime).format()} to ${dayjs(currentSettings.endTime).format()}
+                ${type !== 'logLevel' ? `- Chart Types: ${(currentSettings.chartTypes || []).join(', ') || 'bar'}` : ''}
                 
                 Available metrics: ${Object.values(MetricName).join(', ')}
                 ${availableApplications ? `Available applications: ${availableApplications.join(', ')}` : ''}
+                Available chart types: ${CHART_TYPES.map((t) => t.value).join(', ')}
                 
                 User request: "${query}"
                 
@@ -144,11 +166,14 @@ export default function CustomizationDrawer({
                 ${type === 'logLevel' ? '- applications: array of application names from the available list (e.g. ["app1", "app2"])' : ''}
                 - startTime: ISO date string (e.g. "2024-03-20T00:00:00Z")
                 - endTime: ISO date string (e.g. "2024-03-20T00:00:00Z")
+                ${type !== 'logLevel' ? '- chartTypes: array of chart types (e.g. ["bar", "line"] or ["pie"])' : ''}
                 
                 Example responses:
                 For "show last 24 hours": {"startTime": "2024-03-19T00:00:00Z", "endTime": "2024-03-20T00:00:00Z"}
                 For "show error logs": {"metricName": "LOG_ERROR"}
-                ${type === 'logLevel' ? `For "show first application": {"applications": ["${availableApplications?.[0] || ''}"]}` : ''}`,
+                ${type === 'logLevel' ? `For "show first application": {"applications": ["${availableApplications?.[0] || ''}"]}` : ''}
+                ${type !== 'logLevel' ? 'For "show as pie and bar charts": {"chartTypes": ["pie", "bar"]}' : ''}
+                ${type !== 'logLevel' ? 'For "use line chart": {"chartTypes": ["line"]}' : ''}`,
                   },
                 ],
               },
@@ -206,7 +231,27 @@ export default function CustomizationDrawer({
             return;
           }
 
-          dispatch(getAction()(suggestion));
+          if (suggestion.chartTypes && type !== 'logLevel') {
+            const validChartTypes = CHART_TYPES.map((t) => t.value);
+            const invalidCharts = suggestion.chartTypes.filter(
+              (chart) => !validChartTypes.includes(chart),
+            );
+            if (invalidCharts.length > 0) {
+              setAiSuggestion(
+                `Invalid chart types in suggestion: ${invalidCharts.join(', ')}. Available types: ${validChartTypes.join(', ')}`,
+              );
+              return;
+            }
+            handleChartTypesChange(suggestion.chartTypes);
+          }
+
+          // Remove chartTypes from dispatch if type is logLevel
+          const dispatchSuggestion = { ...suggestion };
+          if (type === 'logLevel') {
+            delete dispatchSuggestion.chartTypes;
+          }
+
+          dispatch(getAction()(dispatchSuggestion));
           setAiSuggestion(JSON.stringify(suggestion, null, 2));
         } catch (parseError) {
           console.warn('Failed to parse AI suggestion:', parseError);
@@ -253,6 +298,21 @@ export default function CustomizationDrawer({
               }))}
             />
           </div>
+
+          {type !== 'logLevel' && (
+            <div>
+              <Text strong>Chart Types</Text>
+              <Select
+                className="mt-1 w-full"
+                mode="multiple"
+                value={currentSettings.chartTypes}
+                onChange={handleChartTypesChange}
+                options={CHART_TYPES}
+                maxTagCount={2}
+                placeholder="Select chart types"
+              />
+            </div>
+          )}
 
           {type === 'logLevel' && (
             <div>

@@ -68,13 +68,13 @@ export default function LogLevelOverviewCard() {
         open={open}
         onClose={() => setOpen(false)}
         title="Log Level Overview"
+        type="logLevel"
         currentSettings={{
           metricName,
           startTime,
           endTime,
           applications: selectedApps,
         }}
-        type="logLevel"
         availableApplications={applications?.applications}
       />
     </Card>

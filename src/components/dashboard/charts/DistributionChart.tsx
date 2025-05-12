@@ -26,17 +26,24 @@ interface DistributionChartProps {
   data: DistributionData[];
   height?: number;
   className?: string;
-  defaultChartType?: ChartType;
   dimension?: Dimension;
   logsQuery?: LogSearchRequest;
+  isMultiMode: boolean;
+  setIsMultiMode: (isMultiMode: boolean) => void;
+  chartTypes: ChartType[];
+  onChartTypesChange: (chartTypes: ChartType[]) => void;
 }
 
 export default function DistributionChart(props: DistributionChartProps) {
-  const { data, defaultChartType = 'bar', dimension, logsQuery } = props;
-  const [isMultiMode, setIsMultiMode] = useState(false);
-  const [selectedChartTypes, setSelectedChartTypes] = useState<ChartType[]>([
-    defaultChartType,
-  ]);
+  const {
+    data,
+    dimension,
+    logsQuery,
+    isMultiMode,
+    setIsMultiMode,
+    chartTypes,
+    onChartTypesChange,
+  } = props;
   const [chartDataMap, setChartDataMap] = useState<ChartDataMap>({});
 
   useEffect(() => {
@@ -46,7 +53,7 @@ export default function DistributionChart(props: DistributionChartProps) {
     }
 
     const newChartDataMap: ChartDataMap = {};
-    selectedChartTypes.forEach((chartType) => {
+    chartTypes.forEach((chartType) => {
       const processed = processChartData(data, chartType);
       const referenceLinesData = getReferenceLinesData(processed.data);
       const margins = getChartMargins(processed.totalItems, chartType);
@@ -59,14 +66,14 @@ export default function DistributionChart(props: DistributionChartProps) {
     });
 
     setChartDataMap(newChartDataMap);
-  }, [data, selectedChartTypes]);
+  }, [data, chartTypes]);
 
   // When switching modes, ensure we follow the mode's rules
   useEffect(() => {
-    if (!isMultiMode && selectedChartTypes.length > 1) {
-      setSelectedChartTypes([selectedChartTypes[0]]);
+    if (!isMultiMode && chartTypes.length > 1) {
+      onChartTypesChange([chartTypes[0]]);
     }
-  }, [isMultiMode, selectedChartTypes]);
+  }, [isMultiMode, chartTypes, onChartTypesChange]);
 
   if (!data || data.length === 0) {
     return (
@@ -85,13 +92,13 @@ export default function DistributionChart(props: DistributionChartProps) {
     const newValues = Array.isArray(values) ? values : [values];
     if (isMultiMode) {
       if (newValues.length === 0) {
-        setSelectedChartTypes(['bar']); // Default to bar chart if nothing selected
+        onChartTypesChange(['bar']); // Default to bar chart if nothing selected
       } else {
-        setSelectedChartTypes(newValues);
+        onChartTypesChange(newValues);
       }
     } else {
       // In single mode, always take the last selected value
-      setSelectedChartTypes([newValues[newValues.length - 1] || 'bar']);
+      onChartTypesChange([newValues[newValues.length - 1] || 'bar']);
     }
   };
 
@@ -104,7 +111,7 @@ export default function DistributionChart(props: DistributionChartProps) {
       <Card>
         <Space className="w-full justify-between">
           <div className="flex items-center gap-2">
-            <ChartIcon chartType={selectedChartTypes[0]} />
+            <ChartIcon chartType={chartTypes?.[0] || 'bar'} />
             <Text className="font-medium">Charts</Text>
           </div>
           <Space>
@@ -127,7 +134,7 @@ export default function DistributionChart(props: DistributionChartProps) {
                   size="small"
                   mode={isMultiMode ? 'multiple' : undefined}
                   maxTagCount={isMultiMode ? 1 : undefined}
-                  value={selectedChartTypes}
+                  value={chartTypes}
                   onChange={handleChartTypeChange}
                   options={CHART_TYPES}
                   style={{ width: 225 }}
@@ -141,7 +148,7 @@ export default function DistributionChart(props: DistributionChartProps) {
         </Space>
       </Card>
       <div className="flex flex-col gap-4">
-        {selectedChartTypes.map((chartType) => {
+        {chartTypes?.map((chartType) => {
           const chartData = chartDataMap[chartType];
           if (!chartData) return null;
 
