@@ -1,8 +1,5 @@
 'use client';
-import {
-  ComponentDataPoint,
-  TimeDataPoint,
-} from '../slices/chartCustomizationSlice';
+import { ComponentDataPoint, TimeDataPoint } from '@/types/logs';
 import { appApi } from './appApi';
 import {
   LogSearchResponse,

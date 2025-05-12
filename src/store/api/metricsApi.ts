@@ -6,6 +6,8 @@ import {
   MetricTimeseriesRequest,
   MetricTimeseriesResponse,
   ApplicationListResponse,
+  MetricDistributionRequest,
+  MetricDistributionResponse,
 } from '@/types/metrics';
 
 export const metricsApi = appApi.injectEndpoints({
@@ -51,6 +53,21 @@ export const metricsApi = appApi.injectEndpoints({
       }),
       providesTags: ['Applications'],
     }),
+
+    getDistributionMetrics: builder.query<
+      MetricDistributionResponse,
+      MetricDistributionRequest
+    >({
+      query: (params) => ({
+        url: '/api/v1/metrics/distribution',
+        method: 'GET',
+        params: {
+          ...params,
+          applications: params.applications?.join(','),
+        },
+      }),
+      providesTags: ['Metrics'],
+    }),
   }),
 });
 
@@ -58,4 +75,5 @@ export const {
   useGetSummaryMetricsQuery,
   useGetTimeseriesMetricsQuery,
   useGetApplicationsQuery,
+  useGetDistributionMetricsQuery,
 } = metricsApi;

@@ -1,30 +1,34 @@
 'use client';
-import { ContentGroup } from '@/types/anomaly';
-import Paragraph from 'antd/es/typography/Paragraph';
-import Text from 'antd/es/typography/Text';
-
+import { Typography, Tag } from 'antd';
+import { AnomalyGroupResponse } from '../../types';
+import { useState } from 'react';
 interface ContentGroupHeaderProps {
-  group: ContentGroup;
-  expanded: boolean;
-  setExpanded: (expanded: boolean) => void;
+  group: AnomalyGroupResponse;
 }
 
-export default function ContentGroupHeader(props: ContentGroupHeaderProps) {
-  const { group, expanded, setExpanded } = props;
+export function ContentGroupHeader({ group }: ContentGroupHeaderProps) {
+  const [expanded, setExpanded] = useState(false);
   return (
-    <div>
-      <Paragraph
+    <div className="mb-4">
+      <Typography.Title
+        level={4}
+        className="mb-2"
         ellipsis={{
-          rows: 2,
+          rows: 3,
           expandable: 'collapsible',
           expanded,
           onExpand: (_, info) => setExpanded(info.expanded),
         }}
-        copyable
       >
-        {group.content ? group.content : 'Unknown Content'}
-      </Paragraph>
-      <Text type="secondary">Total occurrences: {group.count}</Text>
+        {group.items[0]?.content || 'Unknown Content'}
+      </Typography.Title>
+      <div className="flex flex-wrap gap-2">
+        <Tag color="blue">{group.count} occurrences</Tag>
+        <Tag color="green">
+          First: {new Date(group.first_occurrence).toLocaleString()}
+        </Tag>
+        <Tag color="purple">Event ID: {group.event_id}</Tag>
+      </div>
     </div>
   );
 }

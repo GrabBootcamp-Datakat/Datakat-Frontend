@@ -1,48 +1,47 @@
 'use client';
-import { AnomalyLogResponse } from '@/types/anomaly';
-import { Table, Tag } from 'antd';
-import type { TableProps } from 'antd';
-import Paragraph from 'antd/es/typography/Paragraph';
+import { Table } from 'antd';
+import { AnomalyLogEntry } from '../../types';
 
 interface ContentGroupTableProps {
-  anomalies: AnomalyLogResponse[];
+  anomalies: AnomalyLogEntry[];
 }
 
-const columns: TableProps<AnomalyLogResponse>['columns'] = [
-  {
-    title: 'Time',
-    dataIndex: 'timestamp',
-    key: 'timestamp',
-    render: (timestamp) => new Date(timestamp).toLocaleString(),
-  },
-  {
-    title: 'Component',
-    dataIndex: 'component',
-    key: 'component',
-  },
-  {
-    title: 'Level',
-    dataIndex: 'level',
-    key: 'level',
-    render: (level) => (
-      <Tag color={level === 'ERROR' ? 'red' : 'orange'}>{level}</Tag>
-    ),
-  },
-];
+export function ContentGroupTable({ anomalies }: ContentGroupTableProps) {
+  const columns = [
+    {
+      title: 'Timestamp',
+      dataIndex: 'timestamp',
+      key: 'timestamp',
+      render: (timestamp: string) => new Date(timestamp).toLocaleString(),
+    },
+    {
+      title: 'Level',
+      dataIndex: 'level',
+      key: 'level',
+      width: 100,
+    },
+    {
+      title: 'Component',
+      dataIndex: 'component',
+      key: 'component',
+      width: 150,
+    },
+    {
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
+      ellipsis: true,
+    },
+  ];
 
-export default function ContentGroupTable({
-  anomalies,
-}: ContentGroupTableProps) {
   return (
-    <div>
-      <Paragraph strong>Recent Occurrences (5 latest)</Paragraph>
-      <Table
-        dataSource={anomalies}
-        columns={columns}
-        rowKey={(record, index) => `${record.id}-${index}`}
-        size="small"
-        pagination={false}
-      />
-    </div>
+    <Table
+      dataSource={anomalies}
+      columns={columns}
+      rowKey="id"
+      size="small"
+      pagination={false}
+      className="mb-4"
+    />
   );
 }

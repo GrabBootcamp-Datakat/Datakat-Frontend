@@ -1,11 +1,15 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import { useEffect, useRef } from 'react';
 import { Card, Button, Empty, notification } from 'antd';
-import { useAnalyzeAnomalyMutation } from '@/store/api/anomalyApi';
+import {
+  useAnalyzeAnomalyMutation,
+  useGetAnomaliesQuery,
+} from '@/store/api/anomalyApi';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectAnalysisResult,
-  selectSelectedGroup,
+  selectSelectedGroupId,
   setAnalysisResult,
 } from '@/store/slices/anomalySlice';
 import {
@@ -15,6 +19,11 @@ import {
   ContentGroupTable,
 } from './content';
 import { Scrollbar } from 'react-scrollbars-custom';
+import {
+  AnomalyLogEntry,
+  GroupedAnomalyResponse,
+  PaginatedAnomalyResponse,
+} from '@/types/anomaly';
 
 export default function ContentGroupDetails() {
   const dispatch = useAppDispatch();
@@ -26,11 +35,30 @@ export default function ContentGroupDetails() {
     analysisResultEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const selectedGroup = useAppSelector(selectSelectedGroup);
+  const selectedGroupId = useAppSelector(selectSelectedGroupId);
   const analysisResult = useAppSelector(selectAnalysisResult);
-  const [expanded, setExpanded] = useState(false);
   const [analyzeAnomaly, { isLoading: isAnalyzing }] =
     useAnalyzeAnomalyMutation();
+
+  // Fetch the selected group data
+  const { data: anomaliesData } = useGetAnomaliesQuery({
+    limit: 1,
+    offset: 0,
+    event_ids: selectedGroupId ? [selectedGroupId] : undefined,
+    group_by: 'event_id',
+  });
+
+  // Type guard to check if response is GroupedAnomalyResponse
+  const isGroupedResponse = (
+    data: GroupedAnomalyResponse | PaginatedAnomalyResponse | undefined,
+  ): data is GroupedAnomalyResponse => {
+    return data !== undefined && 'groups' in data && Array.isArray(data.groups);
+  };
+
+  // Get the selected group with proper type checking
+  const selectedGroup = isGroupedResponse(anomaliesData)
+    ? anomaliesData.groups[0]
+    : undefined;
 
   useEffect(() => {
     scrollToBottom();
@@ -41,26 +69,38 @@ export default function ContentGroupDetails() {
   }
 
   const handleAnalyze = async () => {
+    if (!selectedGroup?.items?.[0]?.id) return;
+
     try {
       const response = await analyzeAnomaly({
-        log_id: selectedGroup.anomalies[0].id,
+        log_id: selectedGroup.items[0].id,
       }).unwrap();
-      dispatch(setAnalysisResult(response));
+      dispatch(
+        setAnalysisResult({
+          groupId: selectedGroup.event_id,
+          result: response,
+        }),
+      );
       notificationApi.open({
         message: 'Analysis completed',
-        description: 'Analysis completed',
+        description: 'Analysis completed successfully',
         duration: 3,
         type: 'success',
       });
-    } catch {
+    } catch (error) {
       notificationApi.open({
-        message: 'Failed to analyze anomaly',
-        description: 'Failed to analyze anomaly',
+        message: 'Analysis failed',
+        description:
+          error instanceof Error ? error.message : 'Failed to analyze anomaly',
         duration: 3,
         type: 'error',
       });
     }
   };
+
+  const timestamps = selectedGroup.items.map(
+    (item: AnomalyLogEntry) => item.timestamp,
+  );
 
   return (
     <>
@@ -69,23 +109,18 @@ export default function ContentGroupDetails() {
         title="Content Group Details"
         extra={
           <Button
-            // type="primary" // Loại bỏ dòng này để không dùng style mặc định của nút primary
             size="small"
             onClick={handleAnalyze}
             loading={isAnalyzing}
             style={{
-              backgroundColor: 'white', 
-              color: 'black',         
-              borderColor: 'black', 
-              borderWidth: '0.25px',       
-              borderStyle: 'solid',     
+              backgroundColor: 'white',
+              color: 'black',
+              borderColor: 'black',
+              borderWidth: '0.25px',
+              borderStyle: 'solid',
             }}
           >
-            <img
-              src="/brain.png" 
-              alt="Analyze"
-              style={{ marginRight: 8, height: '14px', verticalAlign: 'middle' }}
-            />
+            <Image src="/brain.png" alt="Analyze" width={14} height={14} />
             Analyze
           </Button>
         }
@@ -108,13 +143,9 @@ export default function ContentGroupDetails() {
             style: { display: 'none' },
           }}
         >
-          <ContentGroupHeader
-            group={selectedGroup}
-            expanded={expanded}
-            setExpanded={setExpanded}
-          />
-          <ContentGroupTimeline timestamps={selectedGroup.timestamps} />
-          <ContentGroupTable anomalies={selectedGroup.anomalies} />
+          <ContentGroupHeader group={selectedGroup} />
+          <ContentGroupTimeline timestamps={timestamps} />
+          <ContentGroupTable anomalies={selectedGroup.items} />
           <div ref={analysisResultEndRef} />
           {analysisResult && <AnalysisResult analysis={analysisResult} />}
         </Scrollbar>

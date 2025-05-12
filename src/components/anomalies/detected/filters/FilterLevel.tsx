@@ -1,33 +1,47 @@
 'use client';
-import { useAppSelector, useAppDispatch } from '@/hooks/hook';
+import { Select } from 'antd';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectFilters,
-  selectUniqueValues,
   setFilters,
+  resetGroupedAnomalies,
 } from '@/store/slices/anomalySlice';
-import { Select } from 'antd';
+import { useGetDistinctLevelsQuery } from '@/store/api/anomalyApi';
+import { useCallback } from 'react';
 
 export default function FilterLevel() {
   const dispatch = useAppDispatch();
-  const levelFilter = useAppSelector(selectFilters).levelFilter;
-  const levels = useAppSelector(selectUniqueValues).levels;
+  const filters = useAppSelector(selectFilters);
 
-  const handleLevelFilter = (value: string) => {
-    dispatch(setFilters({ field: 'levelFilter', value }));
-  };
+  // Fetch distinct levels
+  const { data: levelsData } = useGetDistinctLevelsQuery({
+    start_time: 'now-24h',
+    end_time: 'now',
+  });
+
+  const handleChange = useCallback(
+    (value: string) => {
+      dispatch(setFilters({ field: 'levelFilter', value }));
+      dispatch(resetGroupedAnomalies());
+    },
+    [dispatch],
+  );
+
+  const options = [
+    { value: 'all', label: 'All Levels' },
+    ...(levelsData?.values || []).map((level) => ({
+      value: level,
+      label: level,
+    })),
+  ];
 
   return (
     <Select
-      value={levelFilter}
-      onChange={handleLevelFilter}
+      value={filters.levelFilter}
+      onChange={handleChange}
+      options={options}
       style={{ width: '100%' }}
-    >
-      <Select.Option value="all">All Levels</Select.Option>
-      {levels.map((level) => (
-        <Select.Option key={level} value={level}>
-          {level}
-        </Select.Option>
-      ))}
-    </Select>
+      placeholder="Select Level"
+    />
   );
 }

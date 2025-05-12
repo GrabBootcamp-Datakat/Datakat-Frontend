@@ -9,6 +9,7 @@ export const CHART_COLORS = {
   secondary: '#8c8c8c',
   grid: '#e8e8e8',
   border: '#d9d9d9',
+  unknown: '#8c8c8c',
 } as const;
 
 export const PRIMARY_COLORS = '#1677ff';

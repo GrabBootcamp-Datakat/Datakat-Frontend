@@ -1,33 +1,47 @@
 'use client';
-import { useAppSelector, useAppDispatch } from '@/hooks/hook';
+import { Select } from 'antd';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectFilters,
-  selectUniqueValues,
   setFilters,
+  resetGroupedAnomalies,
 } from '@/store/slices/anomalySlice';
-import { Select } from 'antd';
+import { useGetDistinctEventIdsQuery } from '@/store/api/anomalyApi';
+import { useCallback } from 'react';
 
 export default function FilterEventId() {
   const dispatch = useAppDispatch();
-  const eventIdFilter = useAppSelector(selectFilters).eventIdFilter;
-  const eventIds = useAppSelector(selectUniqueValues).eventIds;
+  const filters = useAppSelector(selectFilters);
 
-  const handleEventIdFilter = (value: string) => {
-    dispatch(setFilters({ field: 'eventIdFilter', value }));
-  };
+  // Fetch distinct event IDs
+  const { data: eventIdsData } = useGetDistinctEventIdsQuery({
+    start_time: 'now-24h',
+    end_time: 'now',
+  });
+
+  const handleChange = useCallback(
+    (value: string) => {
+      dispatch(setFilters({ field: 'eventIdFilter', value }));
+      dispatch(resetGroupedAnomalies());
+    },
+    [dispatch],
+  );
+
+  const options = [
+    { value: 'all', label: 'All Event IDs' },
+    ...(eventIdsData?.values || []).map((id) => ({
+      value: id,
+      label: id,
+    })),
+  ];
 
   return (
     <Select
-      value={eventIdFilter}
-      onChange={handleEventIdFilter}
+      value={filters.eventIdFilter}
+      onChange={handleChange}
+      options={options}
       style={{ width: '100%' }}
-    >
-      <Select.Option value="all">All Events</Select.Option>
-      {eventIds.map((id) => (
-        <Select.Option key={id} value={id}>
-          {id}
-        </Select.Option>
-      ))}
-    </Select>
+      placeholder="Select Event ID"
+    />
   );
 }

@@ -27,12 +27,12 @@ interface ChartDataPoint {
 export default function ChartVisualization(
   nlvQueryResponse: NLVQueryResponse,
 ): React.ReactNode {
+  console.log(nlvQueryResponse);
   const chartProps = convertNLVResponseToChartData(nlvQueryResponse);
 
   if (!chartProps) return null;
 
   if (chartProps.data.length === 1) {
-    console.log(chartProps);
     const xField = chartProps.config.xField;
     const yField = chartProps.config.yField;
     return (

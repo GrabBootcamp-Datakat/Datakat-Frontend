@@ -5,7 +5,20 @@ export interface AnomalyLogEntry {
   component: string;
   content: string;
   event_id: string;
-  metadata?: Record<string, string>;
+  metadata?: {
+    source?: string;
+    environment?: string;
+    host?: string;
+    service?: string;
+    trace_id?: string;
+    span_id?: string;
+    user_id?: string;
+    session_id?: string;
+    version?: string;
+    tags?: string[];
+    attributes?: Record<string, string | number | boolean>;
+    [key: string]: unknown;
+  };
   is_anomaly?: boolean;
 }
 
@@ -26,60 +39,19 @@ export interface PaginatedAnomalyResponse {
   total: number;
 }
 
-export interface LLMAnalysisRequest {
-  log_id: string;
-}
-
 export interface LLMAnalysisResponse {
   anomaly_detection: {
-    anomaly_id: string;
-    timestamp: string;
-    severity: 'HIGH' | 'MEDIUM' | 'LOW';
-    type: string;
-    description: string;
-    affected_component: string;
-    normal_threshold: string;
-    observed_value: string;
-    deviation_factor: string;
-    related_events: Array<{
-      timestamp: string;
-      event: string;
-      count: string;
-    }>;
     confidence: number;
+    explanation: string;
   };
   root_cause_analysis: {
-    analysis_id: string;
-    anomaly_id: string;
-    root_causes: Array<{
-      cause: string;
-      description: string;
-      evidence: string[];
-      confidence: number;
-    }>;
-    performance_impact: {
-      estimated_slowdown: string;
-      reason: string;
-      affected_operations: string[];
-    };
+    cause: string;
+    impact: string;
+    severity: number;
   };
   recommendations: {
-    recommendation_id: string;
-    anomaly_id: string;
-    recommendations: Array<{
-      action: string;
-      description: string;
-      specific_steps: string[];
-      expected_outcome: string;
-      priority: 'HIGH' | 'MEDIUM' | 'LOW';
-      effort_level: 'HIGH' | 'MEDIUM' | 'LOW';
-      success_rate: number;
-    }>;
-    optimization_opportunities: Array<{
-      opportunity: string;
-      description: string;
-      implementation: string;
-    }>;
+    immediate_actions: string[];
+    long_term_actions: string[];
   };
 }
 

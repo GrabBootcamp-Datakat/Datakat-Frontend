@@ -20,6 +20,13 @@ export enum GroupBy {
   TOTAL = 'total',
 }
 
+export enum Dimension {
+  LEVEL = 'level',
+  COMPONENT = 'component',
+  ERROR_KEY = 'error_key',
+  APPLICATION = 'application',
+}
+
 export interface MetricSummaryRequest {
   startTime: string;
   endTime: string;
@@ -55,4 +62,21 @@ export interface MetricTimeseriesResponse {
 
 export interface ApplicationListResponse {
   applications: string[];
+}
+
+export interface MetricDistributionRequest {
+  startTime: string;
+  endTime: string;
+  applications?: string[];
+  metricName: MetricName;
+  dimension: Dimension;
+}
+
+export interface MetricDistributionItem {
+  name: string;
+  value: number;
+}
+
+export interface MetricDistributionResponse {
+  distribution: MetricDistributionItem[];
 }

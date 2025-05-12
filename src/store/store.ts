@@ -20,9 +20,6 @@ import {
 } from 'redux-persist';
 import { appApi } from '@/store/api/appApi';
 import { aiApi } from '@/store/api/aiApi';
-import chartCustomizationReducer, {
-  ChartCustomizationState,
-} from '@/store/slices/chartCustomizationSlice';
 import dashboardReducer, {
   DashboardState,
 } from '@/store/slices/dashboardSlice';
@@ -53,7 +50,6 @@ const storage =
 export type RootState = {
   [appApi.reducerPath]: ReturnType<typeof appApi.reducer>;
   [aiApi.reducerPath]: ReturnType<typeof aiApi.reducer>;
-  chartCustomization: ChartCustomizationState;
   dashboard: DashboardState;
   metrics: MetricsState;
   logs: LogsState;
@@ -71,7 +67,6 @@ const persistConfig = {
 const appReducer = combineReducers({
   [appApi.reducerPath]: appApi.reducer,
   [aiApi.reducerPath]: aiApi.reducer,
-  chartCustomization: chartCustomizationReducer,
   dashboard: dashboardReducer,
   metrics: metricsReducer,
   logs: logsReducer,

@@ -2,9 +2,12 @@
 import { Card, Button } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import { NoDataStatus, ChartSkeleton } from '../common';
-import { useGetDistributionMetricsQuery } from '@/store/api/metricsApi';
+import {
+  useGetApplicationsQuery,
+  useGetDistributionMetricsQuery,
+} from '@/store/api/metricsApi';
 import { useAppSelector } from '@/hooks/hook';
-import { selectComponentDistribution } from '@/store/slices/dashboardSlice';
+import { selectApplicationDistribution } from '@/store/slices/dashboardSlice';
 import { useState } from 'react';
 import {
   TimeRangeCard,
@@ -12,11 +15,17 @@ import {
   DistributionChart,
 } from './common';
 
-export default function ComponentDistributionCard() {
+export default function ApplicationDistributionCard() {
   const [open, setOpen] = useState(false);
   const { startTime, endTime, metricName, dimension } = useAppSelector(
-    selectComponentDistribution,
+    selectApplicationDistribution,
   );
+
+  const { data: applications, isLoading: isApplicationsLoading } =
+    useGetApplicationsQuery({
+      startTime,
+      endTime,
+    });
 
   const { data: distributionMetrics, isLoading: isDistributionLoading } =
     useGetDistributionMetricsQuery({
@@ -26,18 +35,18 @@ export default function ComponentDistributionCard() {
       dimension,
     });
 
-  if (isDistributionLoading) {
-    return <ChartSkeleton title="Component Distribution" />;
+  if (isDistributionLoading || isApplicationsLoading) {
+    return <ChartSkeleton title="Application Frequency" />;
   }
 
-  if (!distributionMetrics) {
-    return <NoDataStatus title="Component Distribution" />;
+  if (!distributionMetrics || !applications) {
+    return <NoDataStatus title="Application Frequency" />;
   }
 
   return (
     <>
       <Card
-        title="Component Distribution"
+        title="Application Frequency"
         hoverable
         extra={
           <Button
@@ -58,13 +67,14 @@ export default function ComponentDistributionCard() {
       <CustomizationDrawer
         open={open}
         onClose={() => setOpen(false)}
-        title="Component Distribution"
+        title="Application Frequency"
         currentSettings={{
           metricName,
           startTime,
           endTime,
+          applications: applications.applications,
         }}
-        type="component"
+        type="application"
       />
     </>
   );

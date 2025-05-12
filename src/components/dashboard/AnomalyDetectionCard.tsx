@@ -1,84 +1,124 @@
 'use client';
-import { Card, Typography, Space, Tag, Divider } from 'antd';
-import { memo, useMemo } from 'react';
-import { useGetLogsQuery } from '@/store/api/logsApi';
+import { Card, Divider } from 'antd';
+import { memo, useMemo, useEffect } from 'react';
 import { ChartSkeleton } from '../common/Skeleton';
-import { LogEntry, LogLevel } from '@/types/logs';
-import { useAppSelector } from '@/hooks/hook';
-import { selectDateRange } from '@/store/slices/dashboardSlice';
-
-const { Text } = Typography;
-
-type Severity = 'high' | 'medium' | 'low';
-type Trend = 'up' | 'down' | 'flat';
-
-interface AnomalyStatsProps {
-  total: number;
-  anomalies: number;
-  severity: Severity;
-  rate: string;
-  trend: Trend;
-  mostFrequent: string;
-  affectedApps: string[];
-}
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
+import {
+  useGetAnomaliesQuery,
+  useGetAnomalyOccurrencesQuery,
+} from '@/store/api/anomalyApi';
+import {
+  selectChartData,
+  selectSettings,
+  setAnomalies,
+} from '@/store/slices/anomalySlice';
+import AnomalyStats from './anomaly/AnomalyStats';
+import AnomalyList from './anomaly/AnomalyList';
+import type { AnomalyStatsProps } from './anomaly';
 
 const AnomalyDetectionCard = memo(() => {
-  const dateRange = useAppSelector(selectDateRange);
-  const { data, isLoading } = useGetLogsQuery({
-    startTime: dateRange[0],
-    endTime: dateRange[1],
-    levels: [LogLevel.ERROR, LogLevel.WARN],
+  const dispatch = useAppDispatch();
+  const settings = useAppSelector(selectSettings);
+  const chartData = useAppSelector(selectChartData);
+
+  // Fetch anomalies with polling if autoDetect is enabled
+  const { data: anomaliesData, isLoading } = useGetAnomaliesQuery(
+    {
+      limit: 10,
+      offset: 0,
+      start_time: 'now-24h',
+      end_time: 'now',
+    },
+    {
+      pollingInterval: settings.autoDetect ? 5000 : 0,
+    },
+  );
+
+  // Fetch anomaly occurrences for trend analysis
+  const { data: occurrencesData } = useGetAnomalyOccurrencesQuery({
+    start_time: 'now-24h',
+    end_time: 'now',
+    interval: '1h',
   });
 
-  const stats = useMemo(() => {
-    if (!data)
+  // Update Redux state when new data arrives
+  useEffect(() => {
+    if (anomaliesData) {
+      if ('groups' in anomaliesData) {
+        // Handle grouped response
+        const allAnomalies = anomaliesData.groups.flatMap(
+          (group) => group.items,
+        );
+        dispatch(setAnomalies(allAnomalies));
+      } else {
+        // Handle paginated response
+        dispatch(setAnomalies(anomaliesData.items));
+      }
+    }
+  }, [anomaliesData, dispatch]);
+
+  const stats: AnomalyStatsProps = useMemo(() => {
+    if (!anomaliesData || !chartData) {
       return {
         total: 0,
         anomalies: 0,
-        severity: 'low' as Severity,
+        severity: 'low',
         rate: '0%',
-        trend: 'flat' as Trend,
+        trend: 'flat',
         mostFrequent: '',
         affectedApps: [],
       };
+    }
 
-    const anomalies = data.logs.slice(0, 10);
-    const severity: Severity = anomalies.some(
-      (log) => log.level === LogLevel.ERROR,
-    )
+    const total =
+      'groups' in anomaliesData
+        ? anomaliesData.total
+        : anomaliesData.items.length;
+    const anomalies = chartData.eventData.length;
+
+    // Determine severity based on error levels
+    const severity = chartData.levelData.some((level) => level.name === 'ERROR')
       ? 'high'
-      : 'medium';
-    const rate = ((anomalies.length / data.totalCount) * 100).toFixed(1) + '%';
+      : chartData.levelData.some((level) => level.name === 'WARN')
+        ? 'medium'
+        : 'low';
 
-    const appCountMap: Record<string, number> = {};
-    anomalies.forEach((log) => {
-      appCountMap[log.application] = (appCountMap[log.application] || 0) + 1;
-    });
+    // Calculate rate
+    const rate = ((anomalies / total) * 100).toFixed(1) + '%';
 
-    const mostFrequent =
-      Object.entries(appCountMap).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
-    const affectedApps = Object.keys(appCountMap);
+    // Determine trend from occurrences data
+    const trend = occurrencesData?.series.length
+      ? occurrencesData.series[occurrencesData.series.length - 1].count >
+        occurrencesData.series[0].count
+        ? 'up'
+        : 'down'
+      : 'flat';
 
-    const trend: Trend = anomalies.length % 2 === 0 ? 'down' : 'up';
+    // Get most frequent event and affected components
+    const mostFrequent = chartData.eventData[0]?.component || '';
+    const affectedApps = [
+      ...new Set(chartData.eventData.map((e) => e.component)),
+    ];
 
     return {
-      total: data.totalCount,
-      anomalies: anomalies.length,
+      total,
+      anomalies,
       severity,
       rate,
       trend,
       mostFrequent,
       affectedApps,
-    };
-  }, [data]);
+    } as const;
+  }, [anomaliesData, chartData, occurrencesData]);
 
-  const anomalies = useMemo(() => {
-    return data?.logs.slice(0, 3) || [];
-  }, [data]);
-
-  if (isLoading || !data) {
+  if (isLoading || !anomaliesData) {
     return <ChartSkeleton title="Anomaly Detection" />;
   }
+
+  const anomalies =
+    'groups' in anomaliesData
+      ? anomaliesData.groups.slice(0, 3).flatMap((group) => group.items)
+      : anomaliesData.items.slice(0, 3);
 
   return (
     <Card title="Anomaly Detection" hoverable style={{ height: '100%' }}>
@@ -89,100 +129,5 @@ const AnomalyDetectionCard = memo(() => {
   );
 });
 
-export default AnomalyDetectionCard;
 AnomalyDetectionCard.displayName = 'AnomalyDetection';
-
-const AnomalyStats = memo(({ stats }: { stats: AnomalyStatsProps }) => {
-  const severityColor: Record<Severity, string> = {
-    high: 'red',
-    medium: 'orange',
-    low: 'blue',
-  };
-
-  const trendSymbol: Record<Trend, string> = {
-    up: '↑ Increasing',
-    down: '↓ Decreasing',
-    flat: '→ Stable',
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between">
-        <Space direction="vertical" size={0}>
-          <Text type="secondary">Total Logs</Text>
-          <Text strong>{stats.total}</Text>
-        </Space>
-        <Space direction="vertical" size={0}>
-          <Text type="secondary">Anomalies</Text>
-          <Text strong>{stats.anomalies}</Text>
-        </Space>
-        <Space direction="vertical" size={0}>
-          <Text type="secondary">Severity</Text>
-          <Tag color={severityColor[stats.severity]}>{stats.severity}</Tag>
-        </Space>
-      </div>
-
-      <div className="flex justify-between pt-2">
-        <Space direction="vertical" size={0}>
-          <Text type="secondary">Anomaly Rate</Text>
-          <Text strong>{stats.rate}</Text>
-        </Space>
-        <Space direction="vertical" size={0}>
-          <Text type="secondary">Trend</Text>
-          <Text
-            strong
-            style={{ color: stats.trend === 'up' ? 'red' : 'green' }}
-          >
-            {trendSymbol[stats.trend]}
-          </Text>
-        </Space>
-        <Space direction="vertical" size={0}>
-          <Text type="secondary">Affected</Text>
-          <Text strong>{stats.affectedApps.join(', ')}</Text>
-        </Space>
-      </div>
-
-      {stats.mostFrequent && (
-        <div className="pt-2">
-          <Text type="secondary">Most Frequent Issue</Text>
-          <br />
-          <Text strong>{stats.mostFrequent}</Text>
-        </div>
-      )}
-    </div>
-  );
-});
-AnomalyStats.displayName = 'AnomalyStats';
-
-const AnomalyList = memo(({ anomalies }: { anomalies: LogEntry[] }) => {
-  const severityColor = (level: LogLevel) => {
-    switch (level) {
-      case LogLevel.ERROR:
-        return 'red';
-      case LogLevel.WARN:
-        return 'orange';
-      default:
-        return 'blue';
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      {anomalies.map((anomaly) => (
-        <Card key={anomaly['@timestamp']} size="small">
-          <Space direction="vertical" size={0}>
-            <div className="flex items-center justify-between">
-              <Text strong>{anomaly.application}</Text>
-              <Tag color={severityColor(anomaly.level)}>{anomaly.level}</Tag>
-            </div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              {new Date(anomaly['@timestamp']).toLocaleString()}
-            </Text>
-            <Text style={{ fontSize: '12px' }}>{anomaly.content}</Text>
-          </Space>
-        </Card>
-      ))}
-    </div>
-  );
-});
-AnomalyList.displayName = 'AnomalyList';
+export default AnomalyDetectionCard;

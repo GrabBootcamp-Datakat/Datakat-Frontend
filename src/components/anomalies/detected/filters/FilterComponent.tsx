@@ -1,33 +1,47 @@
 'use client';
+import { Select } from 'antd';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectFilters,
-  selectUniqueValues,
   setFilters,
+  resetGroupedAnomalies,
 } from '@/store/slices/anomalySlice';
-import { Select } from 'antd';
+import { useGetDistinctComponentsQuery } from '@/store/api/anomalyApi';
+import { useCallback } from 'react';
 
 export default function FilterComponent() {
   const dispatch = useAppDispatch();
-  const componentFilter = useAppSelector(selectFilters).componentFilter;
-  const components = useAppSelector(selectUniqueValues).components;
+  const filters = useAppSelector(selectFilters);
 
-  const handleComponentFilter = (value: string) => {
-    dispatch(setFilters({ field: 'componentFilter', value }));
-  };
+  // Fetch distinct components
+  const { data: componentsData } = useGetDistinctComponentsQuery({
+    start_time: 'now-24h',
+    end_time: 'now',
+  });
+
+  const handleChange = useCallback(
+    (value: string) => {
+      dispatch(setFilters({ field: 'componentFilter', value }));
+      dispatch(resetGroupedAnomalies());
+    },
+    [dispatch],
+  );
+
+  const options = [
+    { value: 'all', label: 'All Components' },
+    ...(componentsData?.values || []).map((component: string) => ({
+      value: component,
+      label: component,
+    })),
+  ];
 
   return (
     <Select
-      value={componentFilter}
-      onChange={handleComponentFilter}
+      value={filters.componentFilter}
+      onChange={handleChange}
+      options={options}
       style={{ width: '100%' }}
-    >
-      <Select.Option value="all">All Components</Select.Option>
-      {components.map((component) => (
-        <Select.Option key={component} value={component}>
-          {component}
-        </Select.Option>
-      ))}
-    </Select>
+      placeholder="Select Component"
+    />
   );
 }

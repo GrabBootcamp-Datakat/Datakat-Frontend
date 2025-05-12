@@ -1,15 +1,34 @@
 'use client';
-import { Card, Space } from 'antd';
+import { Card, Space, Button } from 'antd';
 import {
   FilterSearch,
   FilterEventId,
   FilterLevel,
   FilterComponent,
 } from './filters';
+import { useAppDispatch } from '@/hooks/hook';
+import {
+  resetFilters,
+  resetGroupedAnomalies,
+} from '@/store/slices/anomalySlice';
 
 export default function FilterCard() {
+  const dispatch = useAppDispatch();
+
+  const handleReset = () => {
+    dispatch(resetFilters());
+    dispatch(resetGroupedAnomalies());
+  };
+
   return (
-    <Card title="Filter">
+    <Card
+      title="Filter"
+      extra={
+        <Button type="link" onClick={handleReset}>
+          Reset Filters
+        </Button>
+      }
+    >
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         <FilterSearch />
         <div className="flex flex-wrap gap-2">

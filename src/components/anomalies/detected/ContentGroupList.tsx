@@ -1,66 +1,51 @@
 'use client';
 import { useMemo, useCallback, memo } from 'react';
 import { Tag, Card } from 'antd';
-import { ContentGroup } from '@/types/anomaly';
+import { AnomalyGroupResponse } from '@/types/anomaly';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
-  selectContentGroups,
-  setSelectedGroup,
-  selectSelectedGroup,
   selectFilters,
+  selectSelectedGroupId,
+  setSelectedGroupId,
+  selectGroupedAnomalies,
 } from '@/store/slices/anomalySlice';
+import { useGetAnomaliesQuery } from '@/store/api/anomalyApi';
 import Paragraph from 'antd/es/typography/Paragraph';
 import Text from 'antd/es/typography/Text';
 import Scrollbar from 'react-scrollbars-custom';
 
 export default function ContentGroupList() {
   const dispatch = useAppDispatch();
-  const contentGroups = useAppSelector(selectContentGroups);
-  const selectedGroup = useAppSelector(selectSelectedGroup);
   const filters = useAppSelector(selectFilters);
+  const selectedGroupId = useAppSelector(selectSelectedGroupId);
+  const { groups } = useAppSelector(selectGroupedAnomalies);
+
+  // Fetch anomalies with filters
+  const { data: anomaliesData } = useGetAnomaliesQuery({
+    limit: 50,
+    offset: 0,
+    group_by: 'event_id',
+    search_query: filters.search || undefined,
+    event_ids:
+      filters.eventIdFilter !== 'all' ? [filters.eventIdFilter] : undefined,
+    levels: filters.levelFilter !== 'all' ? [filters.levelFilter] : undefined,
+    applications:
+      filters.componentFilter !== 'all' ? [filters.componentFilter] : undefined,
+  });
 
   const handleSetSelectedGroup = useCallback(
-    (group: ContentGroup | null) => {
-      dispatch(setSelectedGroup(group));
+    (groupId: string | null) => {
+      dispatch(setSelectedGroupId(groupId));
     },
     [dispatch],
   );
 
-  const filteredContentGroups = useMemo(() => {
-    const lowerCaseSearch = filters.search.toLowerCase();
-    return contentGroups.filter((group) => {
-      // Search filter
-      const matchesSearch =
-        !filters.search ||
-        group.content.toLowerCase().includes(lowerCaseSearch) ||
-        group.count.toString().includes(lowerCaseSearch);
-
-      // Event ID filter
-      const matchesEventId =
-        filters.eventIdFilter === 'all' ||
-        group.anomalies.some(
-          (anomaly) => anomaly.event_id === filters.eventIdFilter,
-        );
-
-      // Level filter
-      const matchesLevel =
-        filters.levelFilter === 'all' ||
-        group.anomalies.some(
-          (anomaly) => anomaly.level === filters.levelFilter,
-        );
-
-      // Component filter
-      const matchesComponent =
-        filters.componentFilter === 'all' ||
-        group.anomalies.some(
-          (anomaly) => anomaly.component === filters.componentFilter,
-        );
-
-      return (
-        matchesSearch && matchesEventId && matchesLevel && matchesComponent
-      );
-    });
-  }, [contentGroups, filters]);
+  const filteredGroups = useMemo(() => {
+    if (!groups.length && anomaliesData && 'groups' in anomaliesData) {
+      return anomaliesData.groups;
+    }
+    return groups;
+  }, [groups, anomaliesData]);
 
   return (
     <Card
@@ -86,12 +71,12 @@ export default function ContentGroupList() {
           style: { display: 'none' },
         }}
       >
-        {filteredContentGroups.map((group, index) => (
+        {filteredGroups.map((group) => (
           <ContentGroupItem
-            key={index}
+            key={group.event_id}
             group={group}
-            selectedGroup={selectedGroup}
-            setSelectedGroup={handleSetSelectedGroup}
+            isSelected={selectedGroupId === group.event_id}
+            onSelect={handleSetSelectedGroup}
           />
         ))}
       </Scrollbar>
@@ -102,25 +87,23 @@ export default function ContentGroupList() {
 const ContentGroupItem = memo(
   ({
     group,
-    selectedGroup,
-    setSelectedGroup,
+    isSelected,
+    onSelect,
   }: {
-    group: ContentGroup;
-    selectedGroup: ContentGroup | null;
-    setSelectedGroup: (group: ContentGroup | null) => void;
+    group: AnomalyGroupResponse;
+    isSelected: boolean;
+    onSelect: (groupId: string | null) => void;
   }) => {
-    const isSelected = selectedGroup?.content === group.content;
-
     // Get unique levels and components from anomalies
     const uniqueLevels = useMemo(() => {
-      const levels = new Set(group.anomalies.map((a) => a.level));
+      const levels = new Set(group.items.map((a) => a.level));
       return Array.from(levels);
-    }, [group.anomalies]);
+    }, [group.items]);
 
     const uniqueComponents = useMemo(() => {
-      const components = new Set(group.anomalies.map((a) => a.component));
+      const components = new Set(group.items.map((a) => a.component));
       return Array.from(components);
-    }, [group.anomalies]);
+    }, [group.items]);
 
     return (
       <Card
@@ -131,12 +114,12 @@ const ContentGroupItem = memo(
           maxWidth: '100%',
           backgroundColor: isSelected ? '#f0f5ff' : undefined,
         }}
-        onClick={() => setSelectedGroup(group)}
+        onClick={() => onSelect(group.event_id)}
       >
         <div className="flex items-center justify-between">
           <div className="w-full flex-[1]">
             <Paragraph ellipsis style={{ maxWidth: '100%', marginBottom: 8 }}>
-              {group.content || 'Unknown Content'}
+              {group.items[0]?.content || 'Unknown Content'}
             </Paragraph>
             <div className="flex flex-wrap gap-2">
               <Tag color="blue">{group.count} occurrences</Tag>
@@ -151,22 +134,13 @@ const ContentGroupItem = memo(
                 </Tag>
               ))}
               <Text type="secondary">
-                First: {new Date(group.timestamps[0]).toLocaleString()}
+                First: {new Date(group.first_occurrence).toLocaleString()}
               </Text>
             </div>
           </div>
         </div>
       </Card>
     );
-  },
-  (prevProps, nextProps) => {
-    const isSameGroup = prevProps.group === nextProps.group;
-    const wasSelected =
-      prevProps.selectedGroup?.content === prevProps.group.content;
-    const isSelected =
-      nextProps.selectedGroup?.content === nextProps.group.content;
-
-    return isSameGroup && wasSelected === isSelected;
   },
 );
 

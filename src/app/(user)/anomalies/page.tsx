@@ -1,24 +1,22 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, Button, Row, Typography, Space, notification } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { useGetAnomaliesQuery } from '@/store/api/anomalyApi';
 import { LayoutStatic, PageTitle } from '@/components/common';
-import {
-  setAnomalies,
-  loadMore,
-  addAnomaly,
-} from '@/store/slices/anomalySlice';
-import { selectPagination } from '@/store/slices/anomalySlice';
+import { DetectedAnomalies, HistoricalAnalysis } from '@/components/anomalies';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
-  DetectedAnomalies,
-  // DetectionSettings,
-  HistoricalAnalysis,
-} from '@/components/anomalies';
+  appendGroupedAnomalies,
+  resetGroupedAnomalies,
+  selectGroupedAnomalies,
+} from '@/store/slices/anomalySlice';
 import './page.css';
 
 const { Text } = Typography;
+
+const ITEMS_PER_PAGE = 10;
+const POLLING_INTERVAL = 5000; // 5 seconds
 
 const tabItems = [
   {
@@ -37,59 +35,52 @@ export default function AnomaliesPage() {
   const dispatch = useAppDispatch();
   const [notificationApi, notificationContextHolder] =
     notification.useNotification();
-  const [isNotified, setIsNotified] = useState(false);
-  const pagination = useAppSelector(selectPagination);
-  const { data: anomaliesData, refetch } = useGetAnomaliesQuery({
-    limit: pagination.limit,
-    offset: pagination.offset,
-  });
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const { total } = useAppSelector(selectGroupedAnomalies);
 
+  // Use RTK Query with polling
+  const { data: anomaliesData } = useGetAnomaliesQuery(
+    {
+      limit: ITEMS_PER_PAGE,
+      offset: currentOffset,
+      start_time: 'now-24h',
+      end_time: 'now',
+      group_by: 'event_id',
+    },
+    {
+      pollingInterval: POLLING_INTERVAL,
+    },
+  );
+
+  // Update state when new data arrives
   useEffect(() => {
-    if (!anomaliesData?.items) return;
-
-    const total = anomaliesData.total;
-    const isWithinRange = pagination.offset < total;
-
-    if (isWithinRange) {
-      if (pagination.offset === 0) {
-        dispatch(setAnomalies(anomaliesData.items));
-      } else {
-        dispatch(addAnomaly(anomaliesData.items));
-      }
-      setIsNotified(false);
-    } else {
-      if (!isNotified) {
-        notificationApi.open({
-          message: 'No more anomalies',
-          description: 'No more anomalies to fetch',
-          duration: 3,
-          type: 'info',
-          showProgress: true,
-        });
-        setIsNotified(true);
-      }
+    if (anomaliesData && 'groups' in anomaliesData) {
+      dispatch(
+        appendGroupedAnomalies({
+          groups: anomaliesData.groups,
+          total: anomaliesData.total,
+        }),
+      );
     }
-  }, [dispatch, anomaliesData, pagination.offset, isNotified, notificationApi]);
+  }, [anomaliesData, dispatch]);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch, pagination]);
-
-  // auto fetch anomalies
-  useEffect(() => {
-    const total = anomaliesData?.total || 0;
-    const interval = setInterval(() => {
-      if (pagination.offset < total) {
-        dispatch(loadMore());
-      } else {
-        refetch();
-      }
-    }, 1000 * 5); // 3 s
-    return () => clearInterval(interval);
-  }, [dispatch, anomaliesData?.total, pagination.offset, refetch]);
-
+  // Handle load more
   const handleLoadMore = () => {
-    dispatch(loadMore());
+    if (total && currentOffset < total) {
+      setCurrentOffset((prev) => prev + ITEMS_PER_PAGE);
+    } else {
+      notificationApi.info({
+        message: 'No more anomalies',
+        description: 'No more anomalies to fetch',
+        duration: 3,
+      });
+    }
+  };
+
+  // Handle reset
+  const handleReset = () => {
+    setCurrentOffset(0);
+    dispatch(resetGroupedAnomalies());
   };
 
   return (
@@ -104,10 +95,17 @@ export default function AnomaliesPage() {
           </Text>
           <Button
             type="link"
-            onClick={handleLoadMore}
-            disabled={pagination.offset === 0}
+            onClick={handleReset}
+            disabled={currentOffset === 0}
           >
             Reset
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleLoadMore}
+            disabled={total ? currentOffset >= total : true}
+          >
+            Load More
           </Button>
         </Space>
       </Row>

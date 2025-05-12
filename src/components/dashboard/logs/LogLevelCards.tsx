@@ -1,17 +1,18 @@
 import { Card, Progress } from 'antd';
 import { CHART_COLORS } from '@/components/constants/color';
-import { LogLevelSummary } from '@/store/slices/dashboardSlice';
 import {
   CheckCircleOutlined,
   WarningOutlined,
   CloseCircleOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import Text from 'antd/es/typography/Text';
 import { memo } from 'react';
+import { MetricDistributionItem } from '@/types/metrics';
 
 interface LogLevelCardProps {
   icon: React.ReactNode;
-  level: 'INFO' | 'WARN' | 'ERROR';
+  level: string;
   count: number;
   total: number;
   color: string;
@@ -19,7 +20,7 @@ interface LogLevelCardProps {
 
 const LogLevelCard = memo((props: LogLevelCardProps) => {
   const { icon, level, count, total, color } = props;
-  const percentage = Number(((count / total) * 100).toFixed(1));
+  const percentage = total > 0 ? Number(((count / total) * 100).toFixed(1)) : 0;
 
   return (
     <Card>
@@ -30,7 +31,7 @@ const LogLevelCard = memo((props: LogLevelCardProps) => {
             <Text strong className="text-sm">
               {level}
             </Text>
-            <Text className="text-sm">{count}</Text>
+            <Text className="text-sm">{count.toLocaleString()}</Text>
           </div>
           <Progress
             percent={percentage}
@@ -50,46 +51,67 @@ const LogLevelCard = memo((props: LogLevelCardProps) => {
 
 LogLevelCard.displayName = 'LogLevelCard';
 
+const getLevelColor = (level: string) => {
+  switch (level.toUpperCase()) {
+    case 'INFO':
+      return CHART_COLORS.info;
+    case 'WARN':
+      return CHART_COLORS.warn;
+    case 'ERROR':
+      return CHART_COLORS.error;
+    default:
+      return CHART_COLORS.unknown;
+  }
+};
+
+const getLevelIcon = (level: string) => {
+  switch (level.toUpperCase()) {
+    case 'INFO':
+      return (
+        <CheckCircleOutlined
+          style={{ color: CHART_COLORS.info, fontSize: '24px' }}
+        />
+      );
+    case 'WARN':
+      return (
+        <WarningOutlined
+          style={{ color: CHART_COLORS.warn, fontSize: '24px' }}
+        />
+      );
+    case 'ERROR':
+      return (
+        <CloseCircleOutlined
+          style={{ color: CHART_COLORS.error, fontSize: '24px' }}
+        />
+      );
+    default:
+      return (
+        <QuestionCircleOutlined
+          style={{ color: CHART_COLORS.unknown, fontSize: '24px' }}
+        />
+      );
+  }
+};
+
 export default function LogLevelCards({
-  summary,
+  distribution,
 }: {
-  summary: LogLevelSummary;
+  distribution: MetricDistributionItem[];
 }) {
+  const total = distribution.reduce((sum, item) => sum + item.value, 0);
+
   return (
-    <div className="flex flex-col gap-3">
-      <LogLevelCard
-        icon={
-          <CheckCircleOutlined
-            style={{ color: CHART_COLORS.info, fontSize: '24px' }}
-          />
-        }
-        level="INFO"
-        count={summary.info}
-        total={summary.total}
-        color={CHART_COLORS.info}
-      />
-      <LogLevelCard
-        icon={
-          <WarningOutlined
-            style={{ color: CHART_COLORS.warn, fontSize: '24px' }}
-          />
-        }
-        level="WARN"
-        count={summary.warn}
-        total={summary.total}
-        color={CHART_COLORS.warn}
-      />
-      <LogLevelCard
-        icon={
-          <CloseCircleOutlined
-            style={{ color: CHART_COLORS.error, fontSize: '24px' }}
-          />
-        }
-        level="ERROR"
-        count={summary.error}
-        total={summary.total}
-        color={CHART_COLORS.error}
-      />
+    <div className="grid grid-cols-2 gap-3">
+      {distribution.map((item) => (
+        <LogLevelCard
+          key={item.name}
+          icon={getLevelIcon(item.name)}
+          level={item.name}
+          count={item.value}
+          total={total}
+          color={getLevelColor(item.name)}
+        />
+      ))}
     </div>
   );
 }
