@@ -1,31 +1,32 @@
 'use client';
 import { useMemo, useCallback } from 'react';
-import { Card, Tabs, Space, Typography } from 'antd';
+import { Card, Tabs, Space } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { LayoutScroll, PageTitle } from '@/components/common';
-import LogsTable from '@/components/logs/LogsTable';
 import { TableSkeleton } from '@/components/common/Skeleton';
-import LogFilters from '@/components/logs/LogFilters';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
-import { setPagination, setSort } from '@/store/slices/logsSlice';
-import { RootState } from '@/store/store';
-import dayjs from 'dayjs';
 import {
-  useGetLogsQuery,
-  useGetLogsApplicationsQuery,
-} from '@/store/api/logsApi';
+  selectLogsFilters,
+  selectLogsSort,
+  selectLogsPagination,
+  setPagination,
+  setSort,
+} from '@/store/slices/logsSlice';
+import dayjs from 'dayjs';
+import { useGetLogsQuery } from '@/store/api/logsApi';
 import { TablePaginationConfig } from 'antd/es/table';
 import { SortBy } from '@/types/logs';
 import type { SortOrder as AntSortOrder } from 'antd/es/table/interface';
 import { LogSearchRequest } from '@/types/logs';
-
-const { Title, Text } = Typography;
+import { LogFilters, LogsTable } from '@/components/logs';
+import Title from 'antd/es/typography/Title';
+import Text from 'antd/es/typography/Text';
 
 export default function LogsPage() {
   const dispatch = useAppDispatch();
-  const { filters, pagination, sort } = useAppSelector(
-    (state: RootState) => state.logs,
-  );
+  const filters = useAppSelector(selectLogsFilters);
+  const pagination = useAppSelector(selectLogsPagination);
+  const sort = useAppSelector(selectLogsSort);
 
   // Convert ISO strings to dayjs objects for the API query
   const dayjsDateRange = useMemo(
@@ -39,7 +40,7 @@ export default function LogsPage() {
       endTime: dayjsDateRange[1].toISOString(),
       query: filters.searchQuery,
       levels: filters.levelFilter,
-      applications: filters.serviceFilter,
+      applications: filters.applicationFilter,
       sortBy: sort.sortField,
       sortOrder: (sort.sortOrder === 'ascend' ? 'asc' : 'desc') as
         | 'asc'
@@ -51,7 +52,7 @@ export default function LogsPage() {
       dayjsDateRange,
       filters.searchQuery,
       filters.levelFilter,
-      filters.serviceFilter,
+      filters.applicationFilter,
       sort.sortField,
       sort.sortOrder,
       pagination.currentPage,
@@ -60,10 +61,6 @@ export default function LogsPage() {
   );
 
   const { data, isLoading } = useGetLogsQuery(queryParams);
-  const { data: applicationsData } = useGetLogsApplicationsQuery({
-    startTime: dayjsDateRange[0].toISOString(),
-    endTime: dayjsDateRange[1].toISOString(),
-  });
 
   const handleTableChange = useCallback(
     (pagination: TablePaginationConfig) => {
@@ -140,7 +137,7 @@ export default function LogsPage() {
   return (
     <LayoutScroll>
       <PageTitle title="Logs" />
-      <LogFilters services={applicationsData?.applications || []} />
+      <LogFilters />
       <Tabs defaultActiveKey="all" items={tabItems} />
     </LayoutScroll>
   );

@@ -13,7 +13,7 @@ import {
   TimeRangeCard,
   CustomizationDrawer,
   DistributionChart,
-} from './common';
+} from './charts';
 
 export default function ApplicationDistributionCard() {
   const [open, setOpen] = useState(false);
@@ -36,17 +36,17 @@ export default function ApplicationDistributionCard() {
     });
 
   if (isDistributionLoading || isApplicationsLoading) {
-    return <ChartSkeleton title="Application Frequency" />;
+    return <ChartSkeleton title="Application Distribution" />;
   }
 
   if (!distributionMetrics || !applications) {
-    return <NoDataStatus title="Application Frequency" />;
+    return <NoDataStatus title="Application Distribution" />;
   }
 
   return (
     <>
       <Card
-        title="Application Frequency"
+        title="Application Distribution"
         hoverable
         extra={
           <Button
@@ -60,14 +60,18 @@ export default function ApplicationDistributionCard() {
       >
         <div className="flex flex-col gap-3">
           <TimeRangeCard startTime={startTime} endTime={endTime} />
-          <DistributionChart data={distributionMetrics.distribution} />
+          <DistributionChart
+            data={distributionMetrics.distribution}
+            dimension={dimension}
+            logsQuery={{ startTime, endTime }}
+          />
         </div>
       </Card>
 
       <CustomizationDrawer
         open={open}
         onClose={() => setOpen(false)}
-        title="Application Frequency"
+        title="Application Distribution"
         currentSettings={{
           metricName,
           startTime,

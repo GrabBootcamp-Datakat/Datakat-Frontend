@@ -54,7 +54,7 @@ interface CustomizationDrawerProps {
   availableApplications?: string[];
 }
 
-export function CustomizationDrawer({
+export default function CustomizationDrawer({
   open,
   onClose,
   title,

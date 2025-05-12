@@ -10,7 +10,7 @@ import {
   TimeRangeCard,
   CustomizationDrawer,
   DistributionChart,
-} from './common';
+} from './charts';
 
 export default function ComponentDistributionCard() {
   const [open, setOpen] = useState(false);
@@ -51,7 +51,11 @@ export default function ComponentDistributionCard() {
       >
         <div className="flex flex-col gap-3">
           <TimeRangeCard startTime={startTime} endTime={endTime} />
-          <DistributionChart data={distributionMetrics.distribution} />
+          <DistributionChart
+            data={distributionMetrics.distribution}
+            dimension={dimension}
+            logsQuery={{ startTime, endTime }}
+          />
         </div>
       </Card>
 

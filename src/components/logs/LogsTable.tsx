@@ -9,6 +9,7 @@ import type {
   SortOrder as AntSortOrder,
   FilterValue,
 } from 'antd/es/table/interface';
+import Paragraph from 'antd/es/typography/Paragraph';
 
 interface LogsTableProps {
   data: LogEntry[];
@@ -81,12 +82,16 @@ export default function LogsTable({
           {record.level === LogLevel.ERROR && (
             <WarningOutlined style={{ color: 'red' }} />
           )}
-          <Text
+          <Paragraph
+            ellipsis={{
+              rows: 1,
+            }}
+            copyable
             type="secondary"
             style={{ fontFamily: 'monospace', fontSize: '12px' }}
           >
             {text}
-          </Text>
+          </Paragraph>
         </Space>
       ),
     },

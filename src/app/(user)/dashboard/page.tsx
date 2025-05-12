@@ -11,7 +11,7 @@ export default function DashboardPage() {
   return (
     <LayoutScroll>
       <PageTitle title="Log Analytics Dashboard" />
-      <Row gutter={[16, 16]}>
+      <Row gutter={24}>
         <Col span={12}>
           <LogLevelOverviewCard />
         </Col>
@@ -20,7 +20,7 @@ export default function DashboardPage() {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
+      <Row gutter={24}>
         <Col span={12}>
           <ApplicationFrequencyCard />
         </Col>

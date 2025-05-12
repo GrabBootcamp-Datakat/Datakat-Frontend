@@ -8,23 +8,25 @@ import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   setSearchQuery,
   setLevelFilter,
-  setServiceFilter,
   setDateRange,
+  selectLogsFilters,
+  setApplicationFilter,
 } from '@/store/slices/logsSlice';
-import { RootState } from '@/store/store';
 import dayjs from 'dayjs';
+import { useGetLogsApplicationsQuery } from '@/store/api/logsApi';
 
 const { RangePicker } = DatePicker;
 
-export interface LogFiltersProps {
-  services: string[];
-}
-
-export default function LogFilters({ services }: LogFiltersProps) {
+export default function LogFilters() {
   const dispatch = useAppDispatch();
-  const {
-    filters: { searchQuery, levelFilter, serviceFilter, dateRange },
-  } = useAppSelector((state: RootState) => state.logs);
+  const { searchQuery, levelFilter, applicationFilter, dateRange } =
+    useAppSelector(selectLogsFilters);
+
+  const { data: applicationsData, isLoading: isApplicationsLoading } =
+    useGetLogsApplicationsQuery({
+      startTime: dayjs(dateRange[0]).toISOString(),
+      endTime: dayjs(dateRange[1]).toISOString(),
+    });
 
   // Convert ISO strings to dayjs objects for the DatePicker
   const dateRangeValue = useMemo(
@@ -47,9 +49,9 @@ export default function LogFilters({ services }: LogFiltersProps) {
     [dispatch],
   );
 
-  const handleServiceFilterChange = useCallback(
+  const handleApplicationChange = useCallback(
     (value: string[]) => {
-      dispatch(setServiceFilter(value));
+      dispatch(setApplicationFilter(value));
     },
     [dispatch],
   );
@@ -95,15 +97,16 @@ export default function LogFilters({ services }: LogFiltersProps) {
             </Select>
             <Select
               mode="multiple"
-              value={serviceFilter}
-              onChange={handleServiceFilterChange}
+              value={applicationFilter}
+              onChange={handleApplicationChange}
               style={{ width: 200 }}
-              placeholder="Select services"
+              placeholder="Select applications"
               allowClear
+              loading={isApplicationsLoading}
             >
-              {services.map((service) => (
-                <Select.Option key={service} value={service}>
-                  {service}
+              {applicationsData?.applications.map((application) => (
+                <Select.Option key={application} value={application}>
+                  {application}
                 </Select.Option>
               ))}
             </Select>

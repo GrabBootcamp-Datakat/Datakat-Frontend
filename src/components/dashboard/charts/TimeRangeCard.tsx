@@ -10,7 +10,7 @@ interface TimeRangeCardProps {
   endTime: string;
 }
 
-export function TimeRangeCard(props: TimeRangeCardProps) {
+export default function TimeRangeCard(props: TimeRangeCardProps) {
   const { startTime, endTime } = props;
   return (
     <Card size="small" className="w-full">

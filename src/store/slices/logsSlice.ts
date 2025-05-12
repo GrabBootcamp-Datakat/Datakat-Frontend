@@ -3,11 +3,12 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { LogLevel, SortBy } from '@/types/logs';
 import dayjs from 'dayjs';
 import type { SortOrder } from 'antd/es/table/interface';
+import { RootState } from '../store';
 
 interface FilterState {
   searchQuery: string;
   levelFilter: LogLevel[];
-  serviceFilter: string[];
+  applicationFilter: string[];
   dateRange: [string, string];
 }
 
@@ -32,7 +33,7 @@ const initialState: LogsState = {
   filters: {
     searchQuery: '',
     levelFilter: [],
-    serviceFilter: [],
+    applicationFilter: [],
     dateRange: [
       dayjs().subtract(9, 'year').toISOString(),
       dayjs().toISOString(),
@@ -63,8 +64,8 @@ const logsSlice = createSlice({
       state.pagination.currentPage = 1;
     },
 
-    setServiceFilter: (state, action: PayloadAction<string[]>) => {
-      state.filters.serviceFilter = action.payload;
+    setApplicationFilter: (state, action: PayloadAction<string[]>) => {
+      state.filters.applicationFilter = action.payload;
       state.pagination.currentPage = 1;
     },
 
@@ -101,14 +102,25 @@ const logsSlice = createSlice({
 });
 
 export const {
+  // filters
   setSearchQuery,
   setLevelFilter,
-  setServiceFilter,
+  setApplicationFilter,
   setDateRange,
+  // pagination
   setPagination,
+  // sort
   setSort,
+  // active tab
   setActiveTab,
+  // reset
   resetFilters,
 } = logsSlice.actions;
 
 export default logsSlice.reducer;
+
+export const selectLogs = (state: RootState) => state.logs;
+export const selectLogsFilters = (state: RootState) => state.logs.filters;
+export const selectLogsPagination = (state: RootState) => state.logs.pagination;
+export const selectLogsSort = (state: RootState) => state.logs.sort;
+export const selectLogsActiveTab = (state: RootState) => state.logs.activeTab;

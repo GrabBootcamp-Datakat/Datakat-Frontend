@@ -10,7 +10,7 @@ import {
   useGetDistributionMetricsQuery,
 } from '@/store/api/metricsApi';
 import { useState } from 'react';
-import { TimeRangeCard, CustomizationDrawer } from './common';
+import { TimeRangeCard, CustomizationDrawer } from './charts';
 
 export default function LogLevelOverviewCard() {
   const {
