@@ -47,7 +47,8 @@ export default function ComponentDistributionCard() {
         hoverable
         extra={
           <Button
-            type="text"
+            type="link"
+            size="small"
             icon={<SettingOutlined />}
             onClick={() => setOpen(true)}
           >

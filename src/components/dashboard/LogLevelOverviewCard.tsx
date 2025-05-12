@@ -47,8 +47,8 @@ export default function LogLevelOverviewCard() {
       style={{ flex: 2 }}
       extra={
         <Button
+          type="link"
           size="small"
-          type="text"
           icon={<SettingOutlined />}
           onClick={() => setOpen(true)}
         >
