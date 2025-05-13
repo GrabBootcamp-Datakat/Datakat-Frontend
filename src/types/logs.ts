@@ -48,6 +48,7 @@ export interface Log {
 }
 
 export interface LogEntry {
+  id?: string;
   '@timestamp': string;
   level: LogLevel;
   component: string;

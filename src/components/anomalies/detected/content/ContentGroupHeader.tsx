@@ -12,7 +12,7 @@ export function ContentGroupHeader({ group }: ContentGroupHeaderProps) {
     <div className="mb-4">
       <Typography.Title
         level={4}
-        className="mb-2"
+        copyable
         ellipsis={{
           rows: 3,
           expandable: 'collapsible',

@@ -27,7 +27,6 @@ interface ChartDataPoint {
 export default function ChartVisualization(
   nlvQueryResponse: NLVQueryResponse,
 ): React.ReactNode {
-  console.log(nlvQueryResponse);
   const chartProps = convertNLVResponseToChartData(nlvQueryResponse);
 
   if (!chartProps) return null;

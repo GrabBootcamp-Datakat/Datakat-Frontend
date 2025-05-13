@@ -46,9 +46,11 @@ export function ContentGroupTable({ anomalies }: ContentGroupTableProps) {
       ellipsis: true,
       render: (content: string) => {
         return (
-          <Paragraph ellipsis copyable title={content}>
-            {content}
-          </Paragraph>
+          content && (
+            <Paragraph ellipsis copyable title={content}>
+              {content}
+            </Paragraph>
+          )
         );
       },
     },

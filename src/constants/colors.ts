@@ -16,7 +16,7 @@ export const LOG_LEVEL_COLORS_TAG = {
   DEBUG: 'green',
   TRACE: 'purple',
   UNKNOWN: 'gray',
-  DEFAULT: 'gray',
+  DEFAULT: 'default',
 } as const;
 
 // Severity Levels

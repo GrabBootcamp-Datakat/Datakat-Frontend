@@ -1,15 +1,16 @@
 'use client';
-import { Table, TablePaginationConfig, Space } from 'antd';
+import { Table, TablePaginationConfig, Space, Tag } from 'antd';
 import { LogLevel, LogEntry, SortBy } from '@/types/logs';
 import { WarningOutlined } from '@ant-design/icons';
-import LogLevelBadge from './LogLevelBadge';
-import Text from 'antd/es/typography/Text';
+import { LOG_LEVEL_COLORS_TAG } from '@/constants/colors';
 import type {
   SorterResult,
   SortOrder as AntSortOrder,
   FilterValue,
 } from 'antd/es/table/interface';
 import Paragraph from 'antd/es/typography/Paragraph';
+import short from 'short-uuid';
+import Text from 'antd/es/typography/Text';
 
 interface LogsTableProps {
   data: LogEntry[];
@@ -57,7 +58,15 @@ export default function LogsTable({
         currentSort?.sortField === SortBy.LEVEL
           ? currentSort.sortOrder
           : undefined,
-      render: (text: LogLevel) => <LogLevelBadge level={text} />,
+      render: (text: LogLevel) => (
+        <Tag
+          color={
+            LOG_LEVEL_COLORS_TAG[text as keyof typeof LOG_LEVEL_COLORS_TAG]
+          }
+        >
+          {text}
+        </Tag>
+      ),
     },
     {
       title: 'Application',
@@ -82,16 +91,18 @@ export default function LogsTable({
           {record.level === LogLevel.ERROR && (
             <WarningOutlined style={{ color: 'red' }} />
           )}
-          <Paragraph
-            ellipsis={{
-              rows: 1,
-            }}
-            copyable
-            type="secondary"
-            style={{ fontFamily: 'monospace', fontSize: '12px' }}
-          >
-            {text}
-          </Paragraph>
+          {text && text.length > 0 && (
+            <Paragraph
+              ellipsis={{
+                rows: 1,
+              }}
+              copyable
+              type="secondary"
+              style={{ fontFamily: 'monospace', fontSize: '12px' }}
+            >
+              {text}
+            </Paragraph>
+          )}
         </Space>
       ),
     },
@@ -116,13 +127,19 @@ export default function LogsTable({
     }
   };
 
+  const logsWithIds: LogEntry[] = data.map((item) => ({
+    ...item,
+    id: short.generate(),
+  }));
+
   return (
     <Table
-      rowKey={(record, index) => `${record['@timestamp']}-${index}`}
+      rowKey={(record) => record.id || short.generate()}
       columns={columns}
-      dataSource={data}
+      dataSource={logsWithIds}
       pagination={pagination}
       onChange={handleTableChange}
+      sticky
     />
   );
 }

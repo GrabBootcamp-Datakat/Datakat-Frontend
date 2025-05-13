@@ -75,19 +75,20 @@ export default function LogFilters() {
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Space wrap>
             <Input
+              value={searchQuery}
               prefix={<SearchOutlined />}
               placeholder="Search logs..."
-              value={searchQuery}
               onChange={handleSearchChange}
               style={{ width: 300 }}
             />
             <Select
-              mode="multiple"
               value={level}
+              mode="multiple"
+              allowClear
+              maxTagCount={1}
+              placeholder="Select levels"
               onChange={handlelevelChange}
               style={{ width: 200 }}
-              placeholder="Select levels"
-              allowClear
             >
               {Object.values(LogLevel).map((level) => (
                 <Select.Option key={level} value={level}>
@@ -97,12 +98,13 @@ export default function LogFilters() {
             </Select>
             <Select
               mode="multiple"
-              value={applicationFilter}
-              onChange={handleApplicationChange}
-              style={{ width: 200 }}
-              placeholder="Select applications"
               allowClear
+              maxTagCount={1}
+              value={applicationFilter}
               loading={isApplicationsLoading}
+              onChange={handleApplicationChange}
+              placeholder="Select applications"
+              style={{ width: 330 }}
             >
               {applicationsData?.applications.map((application) => (
                 <Select.Option key={application} value={application}>

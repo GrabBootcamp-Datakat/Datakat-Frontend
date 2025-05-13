@@ -27,6 +27,7 @@ import {
 import { MetricTimeseriesSeries } from '@/types/metrics';
 import Title from 'antd/es/typography/Title';
 import dayjs from 'dayjs';
+import Paragraph from 'antd/es/typography/Paragraph';
 
 export default function MetricsChart() {
   const dateRange = useAppSelector(selectDateRange);
@@ -101,10 +102,13 @@ export default function MetricsChart() {
             placeholder="Select series"
             value={selectedSeries}
             options={sortedSeries.map((series) => ({
-              label: series.name,
+              label:
+                series.name.length > 24
+                  ? series.name.slice(0, 24) + '...'
+                  : series.name,
               value: series.name,
             }))}
-            style={{ width: 'max-content', minWidth: 125 }}
+            style={{ maxWidth: 350 }}
           />
         )}
       </div>
@@ -156,7 +160,18 @@ const Chart = ({
   );
 
   return (
-    <Card title={name} style={{ marginTop: 12 }}>
+    <Card
+      title={
+        <Paragraph
+          ellipsis
+          copyable={{ text: name }}
+          style={{ marginBottom: 0 }}
+        >
+          {name}
+        </Paragraph>
+      }
+      style={{ marginTop: 12 }}
+    >
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={chartData}>
           <defs>
