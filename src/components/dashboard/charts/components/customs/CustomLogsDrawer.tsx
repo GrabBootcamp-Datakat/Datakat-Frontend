@@ -58,9 +58,7 @@ export default function CustomLogsDrawer(props: LogsDrawerProps) {
       startTime: dayjsDateRange[0].toISOString(),
       endTime: dayjsDateRange[1].toISOString(),
       query:
-        dimension === Dimension.APPLICATION
-          ? undefined
-          : `${filterName} ${query}`,
+        dimension === Dimension.APPLICATION ? query : `${filterName} ${query}`,
       levels,
       applications:
         dimension === Dimension.APPLICATION ? [filterName] : applications,
