@@ -22,22 +22,22 @@ export default function PieChartComponent(props: RenderChartProps) {
           nameKey="name"
           cx="50%"
           cy="50%"
+          isAnimationActive={false}
           fill={CHART_COLORS.total}
           label={({ name, percent }) =>
             `${name.length > 10 ? name.slice(0, 10) + '…' : name} (${(percent * 100).toFixed(0)}%)`
           }
-          isAnimationActive={false}
         >
           {chartData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index]} />
           ))}
         </Pie>
         <Tooltip
+          labelFormatter={(label) => `Name: ${label}`}
           formatter={(value: number) => [
             formatChartValue({ value, chartType }),
             'Value',
           ]}
-          labelFormatter={(label) => `Name: ${label}`}
         />
         <Legend />
       </PieChart>

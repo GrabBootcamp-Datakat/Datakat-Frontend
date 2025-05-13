@@ -8,6 +8,7 @@ export interface AnomalyLogEntry {
   source_file?: string;
   event_id: string;
   is_anomaly?: boolean;
+  metadata?: Record<string, string>;
   detection_timestamp?: string;
 }
 
