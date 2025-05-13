@@ -1,5 +1,5 @@
 'use client';
-import { Card } from 'antd';
+import { Card, Empty } from 'antd';
 import {
   ResponsiveContainer,
   LineChart,
@@ -10,41 +10,37 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { CHART_COLORS, COMPONENT_COLORS } from '@/constants/colors';
+import { useAppSelector } from '@/hooks/hook';
+import { selectDateRange } from '@/store/slices/anomalySlice';
+import { useGetAnomalyOccurrencesQuery } from '@/store/api/anomalyApi';
+import { ChartSkeleton } from '@/components/common';
 
 interface ContentGroupTimelineProps {
-  timestamps: string[];
+  applications: string[];
+  levels: string[];
 }
 
-export function ContentGroupTimeline({
-  timestamps,
-}: ContentGroupTimelineProps) {
-  // Process timestamps into hourly buckets
-  const timeData = timestamps.reduce(
-    (acc: { [key: string]: number }, timestamp) => {
-      const hour = new Date(timestamp).toLocaleString('en-US', {
-        hour: 'numeric',
-        hour12: false,
-        day: 'numeric',
-        month: 'short',
-      });
-      acc[hour] = (acc[hour] || 0) + 1;
-      return acc;
-    },
-    {},
-  );
+export function ContentGroupTimeline(props: ContentGroupTimelineProps) {
+  const { applications, levels } = props;
+  const dateRange = useAppSelector(selectDateRange);
+  const { data: anomaliesData, isLoading } = useGetAnomalyOccurrencesQuery({
+    start_time: dateRange[0],
+    end_time: dateRange[1],
+    applications: applications.length > 0 ? [applications[0]] : undefined,
+    levels: levels.length > 0 ? [levels[0]] : undefined,
+    interval: '1h',
+  });
 
-  // Convert to array and sort by time
-  const chartData = Object.entries(timeData)
-    .map(([hour, count]) => ({ hour, count }))
-    .sort((a, b) => {
-      const dateA = new Date(a.hour);
-      const dateB = new Date(b.hour);
-      return dateA.getTime() - dateB.getTime();
-    });
+  if (isLoading) {
+    return <ChartSkeleton title="Anomaly Occurrences" />;
+  }
+
+  if (!anomaliesData) {
+    return <Empty description="No data available" />;
+  }
 
   return (
     <Card
-      title="Occurrence Timeline"
       size="small"
       className="mb-4"
       style={{
@@ -55,7 +51,7 @@ export function ContentGroupTimeline({
       <div style={{ height: 200, width: '100%' }}>
         <ResponsiveContainer>
           <LineChart
-            data={chartData}
+            data={anomaliesData.series}
             margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
           >
             <CartesianGrid
@@ -63,7 +59,7 @@ export function ContentGroupTimeline({
               stroke={COMPONENT_COLORS.BORDER_LIGHT}
             />
             <XAxis
-              dataKey="hour"
+              dataKey="timestamp"
               stroke={COMPONENT_COLORS.TEXT_SECONDARY}
               tick={{ fontSize: 12 }}
             />

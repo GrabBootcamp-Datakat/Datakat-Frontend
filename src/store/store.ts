@@ -75,9 +75,9 @@ const appReducer = combineReducers({
 });
 
 const rootReducer: Reducer<RootState, Action> = (state, action) => {
-  // if (action.type === "auth/setSignOut") {
-  //   state = undefined;
-  // }
+  if (action.type === 'anomaly/resetFilters') {
+    state = undefined;
+  }
   return appReducer(state, action);
 };
 

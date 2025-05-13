@@ -1,8 +1,9 @@
 'use client';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
-import { LLMAnalysisResponse, AnomalyGroupResponse } from '@/types/anomaly';
+import { LLMAnalysisResponse } from '@/types/anomaly';
 import { AnomalyLogEntry } from '@/components/anomalies/types';
+import dayjs from 'dayjs';
 
 interface ChartDataPoint {
   name: string;
@@ -31,11 +32,16 @@ interface ChartData {
 }
 
 export interface AnomalyState {
+  dateRange: [string, string];
+  pagination: {
+    offset: number;
+    limit: number;
+  };
   filters: {
     search: string;
-    eventIdFilter: string;
-    levelFilter: string;
-    componentFilter: string;
+    eventId: string;
+    level: string;
+    component: string;
   };
   selectedGroupId: string | null;
   settings: {
@@ -44,21 +50,24 @@ export interface AnomalyState {
     threshold: number;
   };
   analysisResults: Record<string, LLMAnalysisResponse>;
-  page: number;
   anomalies: AnomalyLogEntry[];
   chartData: ChartData | null;
-  groupedAnomalies: {
-    groups: AnomalyGroupResponse[];
-    total: number;
-  };
 }
 
 const initialState: AnomalyState = {
+  dateRange: [
+    dayjs().subtract(30, 'days').toISOString(),
+    dayjs().toISOString(),
+  ],
+  pagination: {
+    offset: 0,
+    limit: 50,
+  },
   filters: {
     search: '',
-    eventIdFilter: 'all',
-    levelFilter: 'all',
-    componentFilter: 'all',
+    eventId: 'all',
+    level: 'all',
+    component: 'all',
   },
   selectedGroupId: null,
   settings: {
@@ -67,19 +76,25 @@ const initialState: AnomalyState = {
     threshold: 60,
   },
   analysisResults: {},
-  page: 1,
   anomalies: [],
   chartData: null,
-  groupedAnomalies: {
-    groups: [],
-    total: 0,
-  },
 };
 
 const anomalySlice = createSlice({
   name: 'anomaly',
   initialState,
   reducers: {
+    setDateRange: (state, action: PayloadAction<[string, string]>) => {
+      state.dateRange = action.payload;
+    },
+
+    setPagination: (
+      state,
+      action: PayloadAction<{ offset: number; limit: number }>,
+    ) => {
+      state.pagination = action.payload;
+    },
+
     setFilters: (
       state,
       action: PayloadAction<{
@@ -88,6 +103,17 @@ const anomalySlice = createSlice({
       }>,
     ) => {
       state.filters[action.payload.field] = action.payload.value;
+      state.pagination.offset = 0;
+    },
+
+    resetFilters: (state) => {
+      state.filters = initialState.filters;
+      state.pagination.offset = 0;
+      if (
+        JSON.stringify(state.filters) !== JSON.stringify(initialState.filters)
+      ) {
+        state.selectedGroupId = null;
+      }
     },
 
     setSelectedGroupId: (state, action: PayloadAction<string | null>) => {
@@ -99,10 +125,6 @@ const anomalySlice = createSlice({
       action: PayloadAction<Partial<AnomalyState['settings']>>,
     ) => {
       state.settings = { ...state.settings, ...action.payload };
-    },
-
-    resetFilters: (state) => {
-      state.filters = initialState.filters;
     },
 
     setAnalysisResult: (
@@ -124,7 +146,7 @@ const anomalySlice = createSlice({
     },
 
     loadMore: (state) => {
-      state.page += 1;
+      state.pagination.offset += state.pagination.limit;
     },
 
     setAnomalies: (state, action: PayloadAction<AnomalyLogEntry[]>) => {
@@ -134,45 +156,29 @@ const anomalySlice = createSlice({
     setChartData: (state, action: PayloadAction<ChartData>) => {
       state.chartData = action.payload;
     },
-
-    appendGroupedAnomalies: (
-      state,
-      action: PayloadAction<{
-        groups: AnomalyGroupResponse[];
-        total: number;
-      }>,
-    ) => {
-      state.groupedAnomalies.groups = [
-        ...state.groupedAnomalies.groups,
-        ...action.payload.groups,
-      ];
-      state.groupedAnomalies.total = action.payload.total;
-    },
-
-    resetGroupedAnomalies: (state) => {
-      state.groupedAnomalies = initialState.groupedAnomalies;
-    },
   },
 });
 
 export const {
+  setDateRange,
+  setPagination,
   setFilters,
+  resetFilters,
   setSelectedGroupId,
   setSettings,
-  resetFilters,
   setAnalysisResult,
   clearAnalysisResult,
   clearAllAnalysisResults,
   loadMore,
   setAnomalies,
   setChartData,
-  appendGroupedAnomalies,
-  resetGroupedAnomalies,
 } = anomalySlice.actions;
 
 export default anomalySlice.reducer;
 
 // Selectors
+export const selectDateRange = (state: RootState) => state.anomaly.dateRange;
+export const selectPagination = (state: RootState) => state.anomaly.pagination;
 export const selectFilters = (state: RootState) => state.anomaly.filters;
 export const selectSelectedGroupId = (state: RootState) =>
   state.anomaly.selectedGroupId;
@@ -185,8 +191,5 @@ export const selectAnalysisResult = (state: RootState) => {
 };
 export const selectAnalysisResults = (state: RootState) =>
   state.anomaly.analysisResults;
-export const selectPage = (state: RootState) => state.anomaly.page;
 export const selectAnomalies = (state: RootState) => state.anomaly.anomalies;
 export const selectChartData = (state: RootState) => state.anomaly.chartData;
-export const selectGroupedAnomalies = (state: RootState) =>
-  state.anomaly.groupedAnomalies;

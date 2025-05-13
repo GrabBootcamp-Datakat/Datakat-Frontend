@@ -1,13 +1,13 @@
 'use client';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { LogLevel, SortBy } from '@/types/logs';
-import dayjs from 'dayjs';
 import type { SortOrder } from 'antd/es/table/interface';
 import { RootState } from '../store';
+import dayjs from 'dayjs';
 
 interface FilterState {
   searchQuery: string;
-  levelFilter: LogLevel[];
+  level: LogLevel[];
   applicationFilter: string[];
   dateRange: [string, string];
 }
@@ -32,7 +32,7 @@ export interface LogsState {
 const initialState: LogsState = {
   filters: {
     searchQuery: '',
-    levelFilter: [],
+    level: [],
     applicationFilter: [],
     dateRange: [
       dayjs().subtract(9, 'year').toISOString(),
@@ -59,8 +59,8 @@ const logsSlice = createSlice({
       state.pagination.currentPage = 1;
     },
 
-    setLevelFilter: (state, action: PayloadAction<LogLevel[]>) => {
-      state.filters.levelFilter = action.payload;
+    setlevel: (state, action: PayloadAction<LogLevel[]>) => {
+      state.filters.level = action.payload;
       state.pagination.currentPage = 1;
     },
 
@@ -104,7 +104,7 @@ const logsSlice = createSlice({
 export const {
   // filters
   setSearchQuery,
-  setLevelFilter,
+  setlevel,
   setApplicationFilter,
   setDateRange,
   // pagination

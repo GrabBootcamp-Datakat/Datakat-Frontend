@@ -1,7 +1,6 @@
 'use client';
-import Image from 'next/image';
 import { useEffect, useRef } from 'react';
-import { Card, Button, Empty, notification } from 'antd';
+import { Card, Button, Empty, notification, Divider } from 'antd';
 import {
   useAnalyzeAnomalyMutation,
   useGetAnomaliesQuery,
@@ -10,20 +9,20 @@ import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectAnalysisResult,
   selectSelectedGroupId,
+  selectDateRange,
   setAnalysisResult,
 } from '@/store/slices/anomalySlice';
 import {
   AnalysisResult,
-  ContentGroupTimeline,
   ContentGroupHeader,
   ContentGroupTable,
 } from './content';
 import { Scrollbar } from 'react-scrollbars-custom';
 import {
-  AnomalyLogEntry,
   GroupedAnomalyResponse,
   PaginatedAnomalyResponse,
 } from '@/types/anomaly';
+import Title from 'antd/es/typography/Title';
 
 export default function ContentGroupDetails() {
   const dispatch = useAppDispatch();
@@ -35,18 +34,30 @@ export default function ContentGroupDetails() {
     analysisResultEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const dateRange = useAppSelector(selectDateRange);
   const selectedGroupId = useAppSelector(selectSelectedGroupId);
   const analysisResult = useAppSelector(selectAnalysisResult);
   const [analyzeAnomaly, { isLoading: isAnalyzing }] =
     useAnalyzeAnomalyMutation();
 
   // Fetch the selected group data
-  const { data: anomaliesData } = useGetAnomaliesQuery({
-    limit: 1,
-    offset: 0,
-    event_ids: selectedGroupId ? [selectedGroupId] : undefined,
-    group_by: 'event_id',
-  });
+  const { data: anomaliesData } = useGetAnomaliesQuery(
+    {
+      limit: 1,
+      offset: 0,
+      start_time: dateRange[0],
+      end_time: dateRange[1],
+      event_ids: selectedGroupId ? [selectedGroupId] : undefined,
+      group_by: 'event_id',
+    },
+    {
+      skip: selectedGroupId === null,
+      selectFromResult: ({ data, ...rest }) => ({
+        data: selectedGroupId === null ? undefined : data,
+        ...rest,
+      }),
+    },
+  );
 
   // Type guard to check if response is GroupedAnomalyResponse
   const isGroupedResponse = (
@@ -98,10 +109,6 @@ export default function ContentGroupDetails() {
     }
   };
 
-  const timestamps = selectedGroup.items.map(
-    (item: AnomalyLogEntry) => item.timestamp,
-  );
-
   return (
     <>
       {notificationContextHolder}
@@ -110,17 +117,11 @@ export default function ContentGroupDetails() {
         extra={
           <Button
             size="small"
+            type="link"
+            icon={<BrainIcon />}
             onClick={handleAnalyze}
             loading={isAnalyzing}
-            style={{
-              backgroundColor: 'white',
-              color: 'black',
-              borderColor: 'black',
-              borderWidth: '0.25px',
-              borderStyle: 'solid',
-            }}
           >
-            <Image src="/brain.png" alt="Analyze" width={14} height={14} />
             Analyze
           </Button>
         }
@@ -144,8 +145,16 @@ export default function ContentGroupDetails() {
           }}
         >
           <ContentGroupHeader group={selectedGroup} />
-          <ContentGroupTimeline timestamps={timestamps} />
+          <Divider />
+
+          {/* <Title level={5}>Occurrence Timeline</Title>
+          <ContentGroupTimeline applications={applications} levels={levels} />
+          <Divider /> */}
+
+          <Title level={5}>Last 5 occurrences</Title>
           <ContentGroupTable anomalies={selectedGroup.items} />
+          <Divider />
+
           <div ref={analysisResultEndRef} />
           {analysisResult && <AnalysisResult analysis={analysisResult} />}
         </Scrollbar>
@@ -153,3 +162,29 @@ export default function ContentGroupDetails() {
     </>
   );
 }
+
+const BrainIcon = () => {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="lucide lucide-brain-icon lucide-brain"
+    >
+      <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" />
+      <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" />
+      <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" />
+      <path d="M17.599 6.5a3 3 0 0 0 .399-1.375" />
+      <path d="M6.003 5.125A3 3 0 0 0 6.401 6.5" />
+      <path d="M3.477 10.896a4 4 0 0 1 .585-.396" />
+      <path d="M19.938 10.5a4 4 0 0 1 .585.396" />
+      <path d="M6 18a4 4 0 0 1-1.967-.516" />
+      <path d="M19.967 17.484A4 4 0 0 1 18 18" />
+    </svg>
+  );
+};

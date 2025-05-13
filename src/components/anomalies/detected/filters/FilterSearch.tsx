@@ -1,11 +1,7 @@
 'use client';
 import { SearchOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
-import {
-  setFilters,
-  selectFilters,
-  resetGroupedAnomalies,
-} from '@/store/slices/anomalySlice';
+import { setFilters, selectFilters } from '@/store/slices/anomalySlice';
 import { Input } from 'antd';
 import { useCallback } from 'react';
 
@@ -16,7 +12,6 @@ export default function FilterSearch() {
   const handleSearch = useCallback(
     (value: string) => {
       dispatch(setFilters({ field: 'search', value }));
-      dispatch(resetGroupedAnomalies());
     },
     [dispatch],
   );

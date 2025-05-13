@@ -2,44 +2,49 @@
 import { Select } from 'antd';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
+  selectDateRange,
   selectFilters,
   setFilters,
-  resetGroupedAnomalies,
 } from '@/store/slices/anomalySlice';
 import { useGetDistinctComponentsQuery } from '@/store/api/anomalyApi';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 export default function FilterComponent() {
   const dispatch = useAppDispatch();
   const filters = useAppSelector(selectFilters);
+  const dateRange = useAppSelector(selectDateRange);
 
   // Fetch distinct components
   const { data: componentsData } = useGetDistinctComponentsQuery({
-    start_time: 'now-24h',
-    end_time: 'now',
+    start_time: dateRange[0],
+    end_time: dateRange[1],
   });
 
   const handleChange = useCallback(
     (value: string) => {
-      dispatch(setFilters({ field: 'componentFilter', value }));
-      dispatch(resetGroupedAnomalies());
+      dispatch(setFilters({ field: 'component', value }));
     },
     [dispatch],
   );
 
-  const options = [
-    { value: 'all', label: 'All Components' },
-    ...(componentsData?.values || []).map((component: string) => ({
-      value: component,
-      label: component,
-    })),
-  ];
+  const uniqueOptions = useMemo(() => {
+    return [
+      {
+        value: 'all',
+        label: 'All Components',
+      },
+      ...[...new Set(componentsData?.values || [])].map((component) => ({
+        value: component,
+        label: component,
+      })),
+    ];
+  }, [componentsData]);
 
   return (
     <Select
-      value={filters.componentFilter}
+      value={filters.component}
       onChange={handleChange}
-      options={options}
+      options={uniqueOptions}
       style={{ width: '100%' }}
       placeholder="Select Component"
     />

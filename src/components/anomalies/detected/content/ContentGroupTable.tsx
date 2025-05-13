@@ -1,6 +1,8 @@
 'use client';
-import { Table } from 'antd';
+import { Table, Tag } from 'antd';
 import { AnomalyLogEntry } from '../../types';
+import { LOG_LEVEL_COLORS_TAG } from '@/constants/colors';
+import Paragraph from 'antd/es/typography/Paragraph';
 
 interface ContentGroupTableProps {
   anomalies: AnomalyLogEntry[];
@@ -19,6 +21,17 @@ export function ContentGroupTable({ anomalies }: ContentGroupTableProps) {
       dataIndex: 'level',
       key: 'level',
       width: 100,
+      render: (level: string) => {
+        return (
+          <Tag
+            color={
+              LOG_LEVEL_COLORS_TAG[level as keyof typeof LOG_LEVEL_COLORS_TAG]
+            }
+          >
+            {level}
+          </Tag>
+        );
+      },
     },
     {
       title: 'Component',
@@ -31,6 +44,13 @@ export function ContentGroupTable({ anomalies }: ContentGroupTableProps) {
       dataIndex: 'content',
       key: 'content',
       ellipsis: true,
+      render: (content: string) => {
+        return (
+          <Paragraph ellipsis copyable title={content}>
+            {content}
+          </Paragraph>
+        );
+      },
     },
   ];
 

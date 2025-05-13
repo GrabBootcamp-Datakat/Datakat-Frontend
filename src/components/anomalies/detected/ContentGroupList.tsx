@@ -1,37 +1,55 @@
 'use client';
-import { useMemo, useCallback, memo } from 'react';
-import { Tag, Card } from 'antd';
+import { useMemo, useCallback, memo, useState, useEffect } from 'react';
+import { Tag, Card, Button } from 'antd';
 import { AnomalyGroupResponse } from '@/types/anomaly';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectFilters,
   selectSelectedGroupId,
   setSelectedGroupId,
-  selectGroupedAnomalies,
+  selectPagination,
+  loadMore,
+  selectDateRange,
 } from '@/store/slices/anomalySlice';
 import { useGetAnomaliesQuery } from '@/store/api/anomalyApi';
+import { PlusOutlined } from '@ant-design/icons';
 import Paragraph from 'antd/es/typography/Paragraph';
-import Text from 'antd/es/typography/Text';
 import Scrollbar from 'react-scrollbars-custom';
 
 export default function ContentGroupList() {
   const dispatch = useAppDispatch();
-  const filters = useAppSelector(selectFilters);
+  const { limit, offset } = useAppSelector(selectPagination);
+  const dateRange = useAppSelector(selectDateRange);
+  const { search, eventId, level } = useAppSelector(selectFilters);
   const selectedGroupId = useAppSelector(selectSelectedGroupId);
-  const { groups } = useAppSelector(selectGroupedAnomalies);
+  const [anomaliesData, setAnomaliesData] = useState<AnomalyGroupResponse[]>(
+    [],
+  );
 
-  // Fetch anomalies with filters
-  const { data: anomaliesData } = useGetAnomaliesQuery({
-    limit: 50,
-    offset: 0,
+  const { data, isFetching } = useGetAnomaliesQuery({
+    limit,
+    offset,
+    start_time: dateRange[0],
+    end_time: dateRange[1],
     group_by: 'event_id',
-    search_query: filters.search || undefined,
-    event_ids:
-      filters.eventIdFilter !== 'all' ? [filters.eventIdFilter] : undefined,
-    levels: filters.levelFilter !== 'all' ? [filters.levelFilter] : undefined,
-    applications:
-      filters.componentFilter !== 'all' ? [filters.componentFilter] : undefined,
+    search_query: search,
+    event_ids: eventId !== 'all' ? [eventId] : undefined,
+    levels: level !== 'all' ? [level] : undefined,
+    // applications: component !== 'all' ? [component] : undefined,
   });
+
+  useEffect(() => {
+    if (data && 'groups' in data && offset > 0) {
+      setAnomaliesData((prev) => [...prev, ...data.groups]);
+    }
+  }, [data, offset]);
+
+  useEffect(() => {
+    if (data && 'groups' in data && offset === 0) {
+      setAnomaliesData(data.groups);
+      dispatch(setSelectedGroupId(data.groups[0]?.event_id || null));
+    }
+  }, [data, dispatch, offset]);
 
   const handleSetSelectedGroup = useCallback(
     (groupId: string | null) => {
@@ -40,16 +58,29 @@ export default function ContentGroupList() {
     [dispatch],
   );
 
-  const filteredGroups = useMemo(() => {
-    if (!groups.length && anomaliesData && 'groups' in anomaliesData) {
-      return anomaliesData.groups;
-    }
-    return groups;
-  }, [groups, anomaliesData]);
+  const handleLoadMore = useCallback(() => {
+    dispatch(loadMore());
+  }, [dispatch]);
 
   return (
     <Card
       title="Detected Anomalies"
+      extra={
+        <>
+          <Button
+            type="link"
+            icon={<PlusOutlined />}
+            loading={isFetching}
+            disabled={
+              offset >= (data?.total || 0) ||
+              anomaliesData.length >= (data?.total || 0)
+            }
+            onClick={handleLoadMore}
+          >
+            More
+          </Button>
+        </>
+      }
       style={{ maxWidth: '100%', height: '100%' }}
       styles={{
         body: {
@@ -63,15 +94,15 @@ export default function ContentGroupList() {
       <Scrollbar
         disableTracksWidthCompensation
         noScrollX
+        style={{ height: '100%' }}
         contentProps={{
           style: { padding: '12px', paddingRight: '16px' },
         }}
-        style={{ height: '100%' }}
         trackYProps={{
           style: { display: 'none' },
         }}
       >
-        {filteredGroups.map((group) => (
+        {anomaliesData.map((group) => (
           <ContentGroupItem
             key={group.event_id}
             group={group}
@@ -118,7 +149,15 @@ const ContentGroupItem = memo(
       >
         <div className="flex items-center justify-between">
           <div className="w-full flex-[1]">
-            <Paragraph ellipsis style={{ maxWidth: '100%', marginBottom: 8 }}>
+            <Paragraph
+              ellipsis
+              style={{
+                maxWidth: '100%',
+                marginBottom: 8,
+                fontWeight: 500,
+                color: '#000',
+              }}
+            >
               {group.items[0]?.content || 'Unknown Content'}
             </Paragraph>
             <div className="flex flex-wrap gap-2">
@@ -133,9 +172,10 @@ const ContentGroupItem = memo(
                   {component}
                 </Tag>
               ))}
-              <Text type="secondary">
-                First: {new Date(group.first_occurrence).toLocaleString()}
-              </Text>
+              <ContentGroupTimeRange
+                first_occurrence={group.first_occurrence}
+                last_occurrence={group.last_occurrence}
+              />
             </div>
           </div>
         </div>
@@ -144,4 +184,26 @@ const ContentGroupItem = memo(
   },
 );
 
+interface ContentGroupTimeRangeProps {
+  first_occurrence: string;
+  last_occurrence: string;
+}
+
+const ContentGroupTimeRange = memo((props: ContentGroupTimeRangeProps) => {
+  const { first_occurrence, last_occurrence } = props;
+  return (
+    <>
+      <Paragraph type="secondary" style={{ margin: 0 }}>
+        <span style={{ fontWeight: 500, color: '#000' }}>Last:</span>{' '}
+        {new Date(last_occurrence).toLocaleString()}
+      </Paragraph>
+      <Paragraph type="secondary" style={{ margin: 0 }}>
+        <span style={{ fontWeight: 500, color: '#000' }}>First:</span>{' '}
+        {new Date(first_occurrence).toLocaleString()}
+      </Paragraph>
+    </>
+  );
+});
+
+ContentGroupTimeRange.displayName = 'ContentGroupTimeRange';
 ContentGroupItem.displayName = 'ContentGroupItem';

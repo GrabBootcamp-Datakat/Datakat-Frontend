@@ -9,11 +9,27 @@ export const LOG_LEVEL_COLORS = {
   DEFAULT: '#8c8c8c', // Gray - Default/Fallback
 } as const;
 
+export const LOG_LEVEL_COLORS_TAG = {
+  ERROR: 'red',
+  WARN: 'orange',
+  INFO: 'blue',
+  DEBUG: 'green',
+  TRACE: 'purple',
+  UNKNOWN: 'gray',
+  DEFAULT: 'gray',
+} as const;
+
 // Severity Levels
 export const SEVERITY_COLORS = {
   HIGH: '#ff4d4f',
   MEDIUM: '#faad14',
   LOW: '#1890ff',
+} as const;
+
+export const SEVERITY_COLORS_TAG = {
+  HIGH: 'red',
+  MEDIUM: 'orange',
+  LOW: 'blue',
 } as const;
 
 // Status Colors
@@ -24,6 +40,16 @@ export const STATUS_COLORS = {
   INFO: '#1890ff',
   PROCESSING: '#1890ff',
   DEFAULT: '#8c8c8c',
+  UNKNOWN: '#8c8c8c',
+} as const;
+
+export const STATUS_COLORS_TAG = {
+  SUCCESS: 'green',
+  ERROR: 'red',
+  WARNING: 'orange',
+  INFO: 'blue',
+  PROCESSING: 'blue',
+  DEFAULT: 'gray',
 } as const;
 
 // Chart Colors

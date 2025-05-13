@@ -7,7 +7,7 @@ import { Dayjs } from 'dayjs';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   setSearchQuery,
-  setLevelFilter,
+  setlevel,
   setDateRange,
   selectLogsFilters,
   setApplicationFilter,
@@ -19,7 +19,7 @@ const { RangePicker } = DatePicker;
 
 export default function LogFilters() {
   const dispatch = useAppDispatch();
-  const { searchQuery, levelFilter, applicationFilter, dateRange } =
+  const { searchQuery, level, applicationFilter, dateRange } =
     useAppSelector(selectLogsFilters);
 
   const { data: applicationsData, isLoading: isApplicationsLoading } =
@@ -42,9 +42,9 @@ export default function LogFilters() {
     [dispatch],
   );
 
-  const handleLevelFilterChange = useCallback(
+  const handlelevelChange = useCallback(
     (value: LogLevel[]) => {
-      dispatch(setLevelFilter(value));
+      dispatch(setlevel(value));
     },
     [dispatch],
   );
@@ -83,8 +83,8 @@ export default function LogFilters() {
             />
             <Select
               mode="multiple"
-              value={levelFilter}
-              onChange={handleLevelFilterChange}
+              value={level}
+              onChange={handlelevelChange}
               style={{ width: 200 }}
               placeholder="Select levels"
               allowClear

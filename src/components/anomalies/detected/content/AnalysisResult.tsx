@@ -23,7 +23,7 @@ import {
   RocketOutlined,
   AimOutlined,
 } from '@ant-design/icons';
-import { SEVERITY_COLORS, COMPONENT_COLORS } from '@/constants/colors';
+import { SEVERITY_COLORS_TAG, COMPONENT_COLORS } from '@/constants/colors';
 
 const { Text, Title, Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -45,12 +45,12 @@ const panelStyles = {
 };
 
 export function AnalysisResult({ analysis }: AnalysisResultProps) {
-  const getSeverityColor = (severity: keyof typeof SEVERITY_COLORS) => {
-    return SEVERITY_COLORS[severity];
+  const getSeverityColor = (severity: keyof typeof SEVERITY_COLORS_TAG) => {
+    return SEVERITY_COLORS_TAG[severity];
   };
 
-  const getPriorityColor = (priority: keyof typeof SEVERITY_COLORS) => {
-    return SEVERITY_COLORS[priority];
+  const getPriorityColor = (priority: keyof typeof SEVERITY_COLORS_TAG) => {
+    return SEVERITY_COLORS_TAG[priority];
   };
 
   return (

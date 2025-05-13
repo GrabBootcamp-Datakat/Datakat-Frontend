@@ -4,15 +4,18 @@ export interface AnomalyLogEntry {
   level: string;
   component: string;
   content: string;
+  application?: string;
+  source_file?: string;
   event_id: string;
-  metadata?: Record<string, string>;
   is_anomaly?: boolean;
+  detection_timestamp?: string;
 }
 
 export interface AnomalyGroupResponse {
   event_id: string;
   count: number;
   first_occurrence: string;
+  last_occurrence: string;
   items: AnomalyLogEntry[];
 }
 

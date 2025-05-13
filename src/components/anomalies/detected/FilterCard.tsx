@@ -4,28 +4,30 @@ import {
   FilterSearch,
   FilterEventId,
   FilterLevel,
-  FilterComponent,
+  // FilterComponent,
 } from './filters';
 import { useAppDispatch } from '@/hooks/hook';
-import {
-  resetFilters,
-  resetGroupedAnomalies,
-} from '@/store/slices/anomalySlice';
+import { resetFilters } from '@/store/slices/anomalySlice';
+import { ReloadOutlined } from '@ant-design/icons';
 
 export default function FilterCard() {
   const dispatch = useAppDispatch();
 
   const handleReset = () => {
     dispatch(resetFilters());
-    dispatch(resetGroupedAnomalies());
   };
 
   return (
     <Card
       title="Filter"
       extra={
-        <Button type="link" onClick={handleReset}>
-          Reset Filters
+        <Button
+          type="link"
+          size="small"
+          icon={<ReloadOutlined />}
+          onClick={handleReset}
+        >
+          Reset
         </Button>
       }
     >
@@ -38,9 +40,9 @@ export default function FilterCard() {
           <div className="flex-[1]">
             <FilterLevel />
           </div>
-          <div className="grow">
+          {/* <div className="grow">
             <FilterComponent />
-          </div>
+          </div> */}
         </div>
       </Space>
     </Card>

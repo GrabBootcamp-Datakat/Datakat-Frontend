@@ -204,7 +204,7 @@ export function LogFilters({
     [setQuery],
   );
 
-  const handleLevelFilterChange = useCallback(
+  const handlelevelChange = useCallback(
     (value: LogLevel[]) => {
       setLevels(value);
     },
@@ -246,7 +246,7 @@ export function LogFilters({
             <Select
               mode="multiple"
               value={levels}
-              onChange={handleLevelFilterChange}
+              onChange={handlelevelChange}
               style={{ width: 200 }}
               placeholder="Select levels"
               allowClear

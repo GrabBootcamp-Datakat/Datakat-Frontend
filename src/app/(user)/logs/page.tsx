@@ -39,7 +39,7 @@ export default function LogsPage() {
       startTime: dayjsDateRange[0].toISOString(),
       endTime: dayjsDateRange[1].toISOString(),
       query: filters.searchQuery,
-      levels: filters.levelFilter,
+      levels: filters.level,
       applications: filters.applicationFilter,
       sortBy: sort.sortField,
       sortOrder: (sort.sortOrder === 'ascend' ? 'asc' : 'desc') as
@@ -51,7 +51,7 @@ export default function LogsPage() {
     [
       dayjsDateRange,
       filters.searchQuery,
-      filters.levelFilter,
+      filters.level,
       filters.applicationFilter,
       sort.sortField,
       sort.sortOrder,

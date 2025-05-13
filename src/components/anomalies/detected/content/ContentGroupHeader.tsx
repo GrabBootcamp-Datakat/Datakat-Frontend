@@ -24,10 +24,10 @@ export function ContentGroupHeader({ group }: ContentGroupHeaderProps) {
       </Typography.Title>
       <div className="flex flex-wrap gap-2">
         <Tag color="blue">{group.count} occurrences</Tag>
+        <Tag color="purple">Event ID: {group.event_id}</Tag>
         <Tag color="green">
           First: {new Date(group.first_occurrence).toLocaleString()}
         </Tag>
-        <Tag color="purple">Event ID: {group.event_id}</Tag>
       </div>
     </div>
   );
