@@ -88,6 +88,13 @@ const anomalySlice = createSlice({
       state.dateRange = action.payload;
     },
 
+    setDateRangeFromToday: (state) => {
+      state.dateRange = [
+        dayjs().subtract(30, 'days').toISOString(),
+        dayjs().toISOString(),
+      ];
+    },
+
     setPagination: (
       state,
       action: PayloadAction<{ offset: number; limit: number }>,
@@ -161,6 +168,7 @@ const anomalySlice = createSlice({
 
 export const {
   setDateRange,
+  setDateRangeFromToday,
   setPagination,
   setFilters,
   resetFilters,
