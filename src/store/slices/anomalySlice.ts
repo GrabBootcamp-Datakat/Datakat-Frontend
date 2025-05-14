@@ -1,7 +1,7 @@
 'use client';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
-import { LLMAnalysisResponse } from '@/types/anomaly';
+import { AnomalyGroupResponse, LLMAnalysisResponse } from '@/types/anomaly';
 import { AnomalyLogEntry } from '@/components/anomalies/types';
 import dayjs from 'dayjs';
 
@@ -43,7 +43,7 @@ export interface AnomalyState {
     level: string;
     component: string;
   };
-  selectedGroupId: string | null;
+  selectedGroup: AnomalyGroupResponse | null;
   settings: {
     autoDetect: boolean;
     notify: boolean;
@@ -69,7 +69,7 @@ const initialState: AnomalyState = {
     level: 'all',
     component: 'all',
   },
-  selectedGroupId: null,
+  selectedGroup: null,
   settings: {
     autoDetect: true,
     notify: true,
@@ -115,16 +115,15 @@ const anomalySlice = createSlice({
 
     resetFilters: (state) => {
       state.filters = initialState.filters;
+      state.selectedGroup = null;
       state.pagination.offset = 0;
-      if (
-        JSON.stringify(state.filters) !== JSON.stringify(initialState.filters)
-      ) {
-        state.selectedGroupId = null;
-      }
     },
 
-    setSelectedGroupId: (state, action: PayloadAction<string | null>) => {
-      state.selectedGroupId = action.payload;
+    setSelectedGroup: (
+      state,
+      action: PayloadAction<AnomalyGroupResponse | null>,
+    ) => {
+      state.selectedGroup = action.payload;
     },
 
     setSettings: (
@@ -172,7 +171,7 @@ export const {
   setPagination,
   setFilters,
   resetFilters,
-  setSelectedGroupId,
+  setSelectedGroup,
   setSettings,
   setAnalysisResult,
   clearAnalysisResult,
@@ -188,11 +187,11 @@ export default anomalySlice.reducer;
 export const selectDateRange = (state: RootState) => state.anomaly.dateRange;
 export const selectPagination = (state: RootState) => state.anomaly.pagination;
 export const selectFilters = (state: RootState) => state.anomaly.filters;
-export const selectSelectedGroupId = (state: RootState) =>
-  state.anomaly.selectedGroupId;
+export const selectSelectedGroup = (state: RootState) =>
+  state.anomaly.selectedGroup;
 export const selectSettings = (state: RootState) => state.anomaly.settings;
 export const selectAnalysisResult = (state: RootState) => {
-  const selectedGroupId = state.anomaly.selectedGroupId;
+  const selectedGroupId = state.anomaly.selectedGroup?.event_id;
   return selectedGroupId
     ? state.anomaly.analysisResults[selectedGroupId]
     : null;

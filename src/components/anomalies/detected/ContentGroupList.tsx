@@ -5,8 +5,8 @@ import { AnomalyGroupResponse } from '@/types/anomaly';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectFilters,
-  selectSelectedGroupId,
-  setSelectedGroupId,
+  selectSelectedGroup,
+  setSelectedGroup,
   selectPagination,
   loadMore,
   selectDateRange,
@@ -19,9 +19,9 @@ import Scrollbar from 'react-scrollbars-custom';
 export default function ContentGroupList() {
   const dispatch = useAppDispatch();
   const { limit, offset } = useAppSelector(selectPagination);
-  const dateRange = useAppSelector(selectDateRange);
   const { search, eventId, level } = useAppSelector(selectFilters);
-  const selectedGroupId = useAppSelector(selectSelectedGroupId);
+  const dateRange = useAppSelector(selectDateRange);
+  const selectedGroup = useAppSelector(selectSelectedGroup);
   const [anomaliesData, setAnomaliesData] = useState<AnomalyGroupResponse[]>(
     [],
   );
@@ -47,13 +47,13 @@ export default function ContentGroupList() {
   useEffect(() => {
     if (data && 'groups' in data && offset === 0) {
       setAnomaliesData(data.groups);
-      dispatch(setSelectedGroupId(data.groups[0]?.event_id || null));
+      dispatch(setSelectedGroup(data.groups[0] || null));
     }
   }, [data, dispatch, offset]);
 
   const handleSetSelectedGroup = useCallback(
-    (groupId: string | null) => {
-      dispatch(setSelectedGroupId(groupId));
+    (group: AnomalyGroupResponse | null) => {
+      dispatch(setSelectedGroup(group));
     },
     [dispatch],
   );
@@ -106,7 +106,7 @@ export default function ContentGroupList() {
           <ContentGroupItem
             key={group.event_id}
             group={group}
-            isSelected={selectedGroupId === group.event_id}
+            isSelected={selectedGroup?.event_id === group.event_id}
             onSelect={handleSetSelectedGroup}
           />
         ))}
@@ -123,7 +123,7 @@ const ContentGroupItem = memo(
   }: {
     group: AnomalyGroupResponse;
     isSelected: boolean;
-    onSelect: (groupId: string | null) => void;
+    onSelect: (group: AnomalyGroupResponse | null) => void;
   }) => {
     // Get unique levels and components from anomalies
     const uniqueLevels = useMemo(() => {
@@ -145,7 +145,7 @@ const ContentGroupItem = memo(
           maxWidth: '100%',
           backgroundColor: isSelected ? '#f0f5ff' : undefined,
         }}
-        onClick={() => onSelect(group.event_id)}
+        onClick={() => onSelect(group)}
       >
         <div className="flex items-center justify-between">
           <div className="w-full flex-[1]">

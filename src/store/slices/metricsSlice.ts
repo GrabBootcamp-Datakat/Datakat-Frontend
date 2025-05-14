@@ -16,7 +16,7 @@ export interface MetricsState {
 
 const initialState: MetricsState = {
   dateRange: [
-    dayjs().subtract(15, 'year').toISOString(),
+    dayjs().subtract(10, 'year').toISOString(),
     dayjs().toISOString(),
   ],
   selectedApplications: [],
@@ -31,6 +31,12 @@ const metricsSlice = createSlice({
   reducers: {
     setDateRange: (state, action: PayloadAction<[string, string]>) => {
       state.dateRange = [action.payload[0], action.payload[1]];
+    },
+
+    setDateRangeFromToday: (state) => {
+      const startTime = dayjs().subtract(10, 'year').toISOString();
+      const endTime = dayjs().toISOString();
+      state.dateRange = [startTime, endTime];
     },
 
     setSelectedApplications: (state, action: PayloadAction<string[]>) => {
@@ -53,6 +59,7 @@ const metricsSlice = createSlice({
 
 export const {
   setDateRange,
+  setDateRangeFromToday,
   setSelectedApplications,
   setSelectedMetric,
   setSelectedInterval,

@@ -11,7 +11,7 @@ import {
 } from '@/components/metrics';
 import { LayoutScroll, PageTitle } from '@/components/common';
 import Text from 'antd/es/typography/Title';
-
+import { setDateRangeFromToday } from '@/store/slices/metricsSlice';
 // 1 minute
 const REFRESH_INTERVAL = 1000 * 60;
 
@@ -51,6 +51,10 @@ export default function MetricsPage() {
       setCurrentTime(new Date().toLocaleTimeString());
     }, REFRESH_INTERVAL);
     return () => clearInterval(interval);
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(setDateRangeFromToday());
   }, [dispatch]);
 
   return (

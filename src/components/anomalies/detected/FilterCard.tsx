@@ -6,15 +6,25 @@ import {
   FilterLevel,
   // FilterComponent,
 } from './filters';
-import { useAppDispatch } from '@/hooks/hook';
-import { resetFilters } from '@/store/slices/anomalySlice';
+import { useAppDispatch, useAppSelector } from '@/hooks/hook';
+import { resetFilters, selectFilters } from '@/store/slices/anomalySlice';
 import { ReloadOutlined } from '@ant-design/icons';
+
+const initialFilters = {
+  search: '',
+  eventId: 'all',
+  level: 'all',
+  component: 'all',
+};
 
 export default function FilterCard() {
   const dispatch = useAppDispatch();
+  const filters = useAppSelector(selectFilters);
 
   const handleReset = () => {
-    dispatch(resetFilters());
+    if (JSON.stringify(filters) !== JSON.stringify(initialFilters)) {
+      dispatch(resetFilters());
+    }
   };
 
   return (

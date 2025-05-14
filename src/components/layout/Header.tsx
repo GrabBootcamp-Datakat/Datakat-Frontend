@@ -49,7 +49,12 @@ export default function Header() {
         <ThunderboltOutlined className="text-2xl !text-blue-600" />
         <span className="text-xl font-semibold text-gray-800">LogSavvy</span>
       </Link>
-      <Menu mode="horizontal" selectedKeys={[current]} items={items} />
+      <Menu
+        mode="horizontal"
+        selectedKeys={[current]}
+        items={items}
+        style={{ width: '100%', justifyContent: 'flex-end' }}
+      />
     </AntHeader>
   );
 }

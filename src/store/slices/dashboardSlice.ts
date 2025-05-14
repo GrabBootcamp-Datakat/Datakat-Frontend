@@ -70,6 +70,17 @@ const dashboardSlice = createSlice({
         ...action.payload,
       };
     },
+
+    setDateRangeFromToday: (state) => {
+      const startTime = dayjs().subtract(10, 'year').toISOString();
+      const endTime = dayjs().toISOString();
+      state.logLevelOverview.startTime = startTime;
+      state.logLevelOverview.endTime = endTime;
+      state.componentDistribution.startTime = startTime;
+      state.componentDistribution.endTime = endTime;
+      state.applicationDistribution.startTime = startTime;
+      state.applicationDistribution.endTime = endTime;
+    },
   },
 });
 

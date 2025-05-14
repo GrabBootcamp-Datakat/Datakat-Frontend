@@ -1,15 +1,11 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { Card, Button, Empty, notification, Divider } from 'antd';
-import {
-  useAnalyzeAnomalyMutation,
-  useGetAnomaliesQuery,
-} from '@/store/api/anomalyApi';
+import { useAnalyzeAnomalyMutation } from '@/store/api/anomalyApi';
 import { useAppDispatch, useAppSelector } from '@/hooks/hook';
 import {
   selectAnalysisResult,
-  selectSelectedGroupId,
-  selectDateRange,
+  selectSelectedGroup,
   setAnalysisResult,
 } from '@/store/slices/anomalySlice';
 import {
@@ -18,10 +14,6 @@ import {
   ContentGroupTable,
 } from './content';
 import { Scrollbar } from 'react-scrollbars-custom';
-import {
-  GroupedAnomalyResponse,
-  PaginatedAnomalyResponse,
-} from '@/types/anomaly';
 import Title from 'antd/es/typography/Title';
 
 export default function ContentGroupDetails() {
@@ -34,42 +26,10 @@ export default function ContentGroupDetails() {
     analysisResultEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const dateRange = useAppSelector(selectDateRange);
-  const selectedGroupId = useAppSelector(selectSelectedGroupId);
+  const selectedGroup = useAppSelector(selectSelectedGroup);
   const analysisResult = useAppSelector(selectAnalysisResult);
   const [analyzeAnomaly, { isLoading: isAnalyzing }] =
     useAnalyzeAnomalyMutation();
-
-  // Fetch the selected group data
-  const { data: anomaliesData } = useGetAnomaliesQuery(
-    {
-      limit: 1,
-      offset: 0,
-      start_time: dateRange[0],
-      end_time: dateRange[1],
-      event_ids: selectedGroupId ? [selectedGroupId] : undefined,
-      group_by: 'event_id',
-    },
-    {
-      skip: selectedGroupId === null,
-      selectFromResult: ({ data, ...rest }) => ({
-        data: selectedGroupId === null ? undefined : data,
-        ...rest,
-      }),
-    },
-  );
-
-  // Type guard to check if response is GroupedAnomalyResponse
-  const isGroupedResponse = (
-    data: GroupedAnomalyResponse | PaginatedAnomalyResponse | undefined,
-  ): data is GroupedAnomalyResponse => {
-    return data !== undefined && 'groups' in data && Array.isArray(data.groups);
-  };
-
-  // Get the selected group with proper type checking
-  const selectedGroup = isGroupedResponse(anomaliesData)
-    ? anomaliesData.groups[0]
-    : undefined;
 
   useEffect(() => {
     scrollToBottom();
